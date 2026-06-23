@@ -1,0 +1,9 @@
+export { BasicInfoScreen } from './BasicInfoScreen';
+export { EducationCareerScreen } from './EducationCareerScreen';
+export { FamilyInfoScreen } from './FamilyInfoScreen';
+export { LifestyleScreen } from './LifestyleScreen';
+export { LocationScreen } from './LocationScreen';
+export { KundaliInputScreen } from './KundaliInputScreen';
+export { KundaliSummaryScreen } from './KundaliSummaryScreen';
+export { PhotoUploadScreen } from './PhotoUploadScreen';
+export { PartnerPreferencesScreen } from './PartnerPreferencesScreen';
