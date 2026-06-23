@@ -15,8 +15,9 @@ export function ManagerListScreen({ navigation }: ManagerListScreenProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadManagers();
-  }, []);
+    if (profile) loadManagers();
+    else setLoading(false);
+  }, [profile]);
 
   const loadManagers = async () => {
     if (!profile) return;

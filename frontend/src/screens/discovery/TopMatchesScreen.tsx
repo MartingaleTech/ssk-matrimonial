@@ -23,10 +23,12 @@ export function TopMatchesScreen({ navigation }: TopMatchesScreenProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadTopMatches();
-  }, []);
+    if (profile) loadTopMatches();
+    else setLoading(false);
+  }, [profile]);
 
   const loadTopMatches = async () => {
+    setLoading(true);
     try {
       const { data } = await searchApi.topMatches({ profile_id: profile?.id });
       setMatches(Array.isArray(data) ? data : data.results || []);

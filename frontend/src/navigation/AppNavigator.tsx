@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuth } from '../context';
+import { useAuth, useProfile } from '../context';
 import { LoadingScreen } from '../components';
 import { AuthStack } from './AuthStack';
+import { ProfileCreationStack } from './ProfileCreationStack';
 import { MainTabs } from './MainTabs';
 import { ProfileDetailScreen } from '../screens/discovery/ProfileDetailScreen';
 import { AdvancedSearchScreen } from '../screens/discovery/AdvancedSearchScreen';
@@ -25,12 +26,17 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { hasCompletedProfile } = useProfile();
 
   if (isLoading) return <LoadingScreen />;
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? (
+      {!isAuthenticated ? (
+        <AuthStack />
+      ) : !hasCompletedProfile ? (
+        <ProfileCreationStack />
+      ) : (
         <Stack.Navigator>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} options={{ title: 'Profile' }} />
@@ -48,8 +54,6 @@ export function AppNavigator() {
           <Stack.Screen name="KundaliPreferences" component={KundaliPreferencesScreen} options={{ title: 'Kundali Preferences' }} />
           <Stack.Screen name="KundaliMatches" component={KundaliCompatibleMatchesScreen} options={{ title: 'Compatible Matches' }} />
         </Stack.Navigator>
-      ) : (
-        <AuthStack />
       )}
     </NavigationContainer>
   );
