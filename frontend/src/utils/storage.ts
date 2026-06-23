@@ -25,5 +25,5 @@ export const getUser = async (): Promise<Record<string, unknown> | null> => {
 };
 
 export const clearStorage = async (): Promise<void> => {
-  await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+  await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY, 'active_profile', 'active_manager']);
 };

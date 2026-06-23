@@ -75,7 +75,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         profile,
         managerId,
         managerRole,
-        hasCompletedProfile: !!profile,
+        hasCompletedProfile: profile?.profile_status === 'active',
         setProfile,
         setManagerInfo,
         refreshProfile,

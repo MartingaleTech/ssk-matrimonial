@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import { Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Button, Input } from '../../components';
 import { preferencesApi } from '../../api/preferences';
+import { profilesApi } from '../../api/profiles';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
-interface PartnerPreferencesScreenProps {
-  navigation: { navigate: (screen: string) => void };
-}
-
-export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScreenProps) {
-  const { profile } = useProfile();
+export function PartnerPreferencesScreen() {
+  const { profile, refreshProfile } = useProfile();
   const [ageMin, setAgeMin] = useState('');
   const [ageMax, setAgeMax] = useState('');
   const [heightMin, setHeightMin] = useState('');
@@ -19,6 +16,12 @@ export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScree
   const [occupations, setOccupations] = useState('');
   const [locations, setLocations] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const completeProfile = async () => {
+    if (!profile) return;
+    await profilesApi.update(profile.id, { profile_status: 'active' });
+    await refreshProfile(profile.id);
+  };
 
   const handleSave = async () => {
     if (!profile) return;
@@ -33,9 +36,20 @@ export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScree
         occupations: occupations ? occupations.split(',').map((s) => s.trim()) : null,
         locations: locations ? locations.split(',').map((s) => s.trim()) : null,
       });
-      navigation.navigate('Main');
+      await completeProfile();
     } catch {
       Alert.alert('Error', 'Failed to save preferences');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      await completeProfile();
+    } catch {
+      Alert.alert('Error', 'Failed to complete profile');
     } finally {
       setLoading(false);
     }
@@ -55,7 +69,7 @@ export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScree
       <Input label="Preferred Locations" placeholder="Mumbai, Delhi (comma separated)" value={locations} onChangeText={setLocations} />
 
       <Button title="Complete Profile" onPress={handleSave} loading={loading} />
-      <Button title="Skip" variant="outline" onPress={() => navigation.navigate('Main')} style={styles.skip} />
+      <Button title="Skip" variant="outline" onPress={handleSkip} style={styles.skip} />
     </ScrollView>
   );
 }

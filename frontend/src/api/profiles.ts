@@ -30,7 +30,7 @@ export const profilesApi = {
   get: (id: string) =>
     client.get<Profile>(`/profiles/${id}`),
 
-  update: (id: string, data: Partial<CreateProfilePayload>) =>
+  update: (id: string, data: Partial<CreateProfilePayload> & Record<string, unknown>) =>
     client.patch(`/profiles/${id}`, data),
 
   delete: (id: string) =>
