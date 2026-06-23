@@ -177,6 +177,11 @@ export class ChatService {
     return manager;
   }
 
+  async verifyThreadAccess(threadId: string, userId: string): Promise<void> {
+    const thread = await this.getThreadOrFail(threadId);
+    await this.assertChatAccessForThread(userId, thread);
+  }
+
   private async assertChatAccessForThread(
     userId: string,
     thread: ChatThread,
