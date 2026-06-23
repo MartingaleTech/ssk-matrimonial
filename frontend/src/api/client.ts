@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { getToken } from '../utils/storage';
+import { getToken, clearStorage } from '../utils/storage';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -19,9 +19,9 @@ client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 
 client.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      // Token expired - will be handled by auth context
+      await clearStorage();
     }
     return Promise.reject(error);
   },
