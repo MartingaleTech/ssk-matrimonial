@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { authApi, AuthResponse } from '../api/auth';
 import { setToken, getToken, removeToken, setUser, getUser, clearStorage } from '../utils/storage';
+import { authEvents } from '../utils/authEvents';
 
 interface User {
   id: string;
@@ -27,6 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadStoredAuth();
+  }, []);
+
+  useEffect(() => {
+    return authEvents.onSessionExpired(() => {
+      setTokenState(null);
+      setUserState(null);
+    });
   }, []);
 
   const loadStoredAuth = async () => {

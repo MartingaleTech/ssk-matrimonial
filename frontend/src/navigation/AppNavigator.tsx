@@ -26,9 +26,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
-  const { hasCompletedProfile } = useProfile();
+  const { hasCompletedProfile, isProfileLoading } = useProfile();
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading || (isAuthenticated && isProfileLoading)) return <LoadingScreen />;
 
   return (
     <NavigationContainer>

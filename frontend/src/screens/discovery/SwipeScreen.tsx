@@ -37,6 +37,7 @@ export function SwipeScreen({ navigation }: SwipeScreenProps) {
     try {
       const { data } = await searchApi.recommended({ profile_id: profile?.id });
       setMatches(Array.isArray(data) ? data : data.results || []);
+      setCurrentIndex(0);
     } catch {
       // Silently fail - empty state will show
     } finally {
