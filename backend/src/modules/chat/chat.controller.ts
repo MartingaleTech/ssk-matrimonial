@@ -45,9 +45,8 @@ export class ChatController {
     @Param('id') threadId: string,
     @Body() dto: SendMessageDto,
     @CurrentUser('id') userId: string,
-    @Body('profile_id') profileId: string,
   ) {
-    return this.chatService.sendMessage(threadId, dto, userId, profileId);
+    return this.chatService.sendMessage(threadId, dto, userId, dto.profile_id);
   }
 
   @Patch('messages/:id/read')

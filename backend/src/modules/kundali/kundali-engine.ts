@@ -248,6 +248,23 @@ export function computeGunaMatch(
   const n1 = NAKSHATRAS.indexOf(nakshatra1);
   const n2 = NAKSHATRAS.indexOf(nakshatra2);
 
+  if (r1 === -1 || r2 === -1 || n1 === -1 || n2 === -1) {
+    return {
+      guna_total_score: 0,
+      guna_breakdown: {
+        varna: 0,
+        vashya: 0,
+        tara: 0,
+        yoni: 0,
+        graha_maitri: 0,
+        gana: 0,
+        bhakoot: 0,
+        nadi: 0,
+      },
+      match_quality: 'invalid_data',
+    };
+  }
+
   const varna = computeVarna(r1, r2);
   const vashya = computeVashya(r1, r2);
   const tara = computeTara(n1, n2);

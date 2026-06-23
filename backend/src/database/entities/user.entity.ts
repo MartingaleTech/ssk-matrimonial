@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { UserSession } from './user-session.entity';
 import { ProfileManager } from './profile-manager.entity';
@@ -50,6 +51,6 @@ export class User {
   @OneToMany(() => Notification, (n) => n.user)
   notifications: Notification[];
 
-  @OneToMany(() => UserNotificationSettings, (ns) => ns.user)
-  notification_settings: UserNotificationSettings[];
+  @OneToOne(() => UserNotificationSettings, (ns) => ns.user)
+  notification_settings: UserNotificationSettings;
 }
