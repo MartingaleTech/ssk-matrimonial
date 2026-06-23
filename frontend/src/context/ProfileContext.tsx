@@ -11,6 +11,7 @@ interface ProfileContextType {
   managerId: string | null;
   managerRole: string | null;
   hasCompletedProfile: boolean;
+  isProfileLoading: boolean;
   setProfile: (profile: Profile | null) => void;
   setManagerInfo: (managerId: string, role: string) => void;
   refreshProfile: (profileId: string) => Promise<void>;
@@ -23,6 +24,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfileState] = useState<Profile | null>(null);
   const [managerId, setManagerId] = useState<string | null>(null);
   const [managerRole, setManagerRole] = useState<string | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -31,10 +33,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setProfileState(null);
       setManagerId(null);
       setManagerRole(null);
+      setIsProfileLoading(false);
     }
   }, [isAuthenticated]);
 
   const loadStoredProfile = async () => {
+    setIsProfileLoading(true);
     try {
       const storedProfile = await AsyncStorage.getItem(PROFILE_KEY);
       const storedManager = await AsyncStorage.getItem(MANAGER_KEY);
@@ -46,7 +50,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setManagerId(mgr.id);
         setManagerRole(mgr.role);
       }
-    } catch { /* silent */ }
+    } catch { /* silent */ } finally {
+      setIsProfileLoading(false);
+    }
   };
 
   const setProfile = (p: Profile | null) => {
@@ -76,6 +82,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         managerId,
         managerRole,
         hasCompletedProfile: profile?.profile_status === 'active',
+        isProfileLoading,
         setProfile,
         setManagerInfo,
         refreshProfile,

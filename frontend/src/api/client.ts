@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { getToken, clearStorage } from '../utils/storage';
+import { authEvents } from '../utils/authEvents';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -22,6 +23,7 @@ client.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       await clearStorage();
+      authEvents.emitSessionExpired();
     }
     return Promise.reject(error);
   },
