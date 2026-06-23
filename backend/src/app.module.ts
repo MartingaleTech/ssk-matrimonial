@@ -17,6 +17,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { KundaliModule } from './modules/kundali/kundali.module';
 import { VerificationModule } from './modules/verification/verification.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { VerificationModule } from './modules/verification/verification.module';
     NotificationsModule,
     KundaliModule,
     VerificationModule,
+    AdminModule,
   ],
   providers: [
     {

@@ -4,19 +4,40 @@ import {
   SubscribeMessage,
   MessageBody,
   ConnectedSocket,
+  OnGatewayConnection,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({
   cors: { origin: '*' },
   namespace: '/chat',
 })
-export class ChatGateway {
+export class ChatGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async handleConnection(client: Socket) {
+    try {
+      const token =
+        client.handshake.auth?.token ||
+        client.handshake.headers?.authorization?.replace('Bearer ', '');
+      if (!token) {
+        client.disconnect();
+        return;
+      }
+      const payload = this.jwtService.verify(token);
+      (client as any).userId = payload.sub;
+    } catch {
+      client.disconnect();
+    }
+  }
 
   @SubscribeMessage('joinThread')
   handleJoinThread(
@@ -44,14 +65,22 @@ export class ChatGateway {
       threadId: string;
       content: string;
       message_type?: string;
-      userId: string;
       profileId: string;
     },
   ) {
+    const userId = (client as any).userId;
+    if (!userId) {
+      return { error: 'Unauthorized' };
+    }
+
     const message = await this.chatService.sendMessage(
       data.threadId,
-      { content: data.content, message_type: data.message_type },
-      data.userId,
+      {
+        content: data.content,
+        message_type: data.message_type,
+        profile_id: data.profileId,
+      },
+      userId,
       data.profileId,
     );
 

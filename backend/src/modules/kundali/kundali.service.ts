@@ -300,7 +300,11 @@ export class KundaliService {
 
     await this.searchIndexRepo.update(
       { profile_id: profileId },
-      { rashi: undefined, nakshatra: undefined, manglik_status: undefined },
+      {
+        rashi: null as any,
+        nakshatra: null as any,
+        manglik_status: null as any,
+      },
     );
 
     return { message: 'Kundali deleted' };
