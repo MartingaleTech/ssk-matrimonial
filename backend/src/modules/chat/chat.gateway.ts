@@ -40,10 +40,19 @@ export class ChatGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('joinThread')
-  handleJoinThread(
+  async handleJoinThread(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { threadId: string },
   ) {
+    const userId = (client as any).userId;
+    if (!userId) {
+      return { error: 'Unauthorized' };
+    }
+    try {
+      await this.chatService.verifyThreadAccess(data.threadId, userId);
+    } catch {
+      return { error: 'Forbidden' };
+    }
     client.join(`thread:${data.threadId}`);
     return { event: 'joinedThread', data: { threadId: data.threadId } };
   }
