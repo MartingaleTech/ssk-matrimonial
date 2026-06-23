@@ -28,10 +28,12 @@ export function SwipeScreen({ navigation }: SwipeScreenProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadMatches();
-  }, []);
+    if (profile) loadMatches();
+    else setLoading(false);
+  }, [profile]);
 
   const loadMatches = async () => {
+    setLoading(true);
     try {
       const { data } = await searchApi.recommended({ profile_id: profile?.id });
       setMatches(Array.isArray(data) ? data : data.results || []);

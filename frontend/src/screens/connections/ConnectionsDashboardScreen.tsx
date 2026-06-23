@@ -16,8 +16,9 @@ export function ConnectionsDashboardScreen({ navigation }: ConnectionsDashboardS
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadConnections();
-  }, [filter]);
+    if (profile) loadConnections();
+    else setLoading(false);
+  }, [filter, profile]);
 
   const loadConnections = async () => {
     if (!profile) return;

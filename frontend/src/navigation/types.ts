@@ -21,6 +21,9 @@ export type AuthStackParamList = {
   Login: undefined;
   OTP: { userId: string; channel: string; destination: string };
   AccountSetupChoice: undefined;
+};
+
+export type ProfileCreationParamList = {
   ProfileBasicInfo: undefined;
   ProfileEducation: undefined;
   ProfileFamily: undefined;
