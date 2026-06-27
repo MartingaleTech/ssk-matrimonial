@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import {
   User,
+  UserSession,
   Profile,
   ProfileManager,
   ProfileBasicDetails,
@@ -13,10 +14,20 @@ import {
   ProfilePartnerPreferences,
   ProfilePrivacySettings,
   ProfileKundali,
+  KundaliPreferences,
+  GunaMatchResults,
+  ProfileSearchIndex,
   Verification,
   Connection,
+  Block,
   ChatThread,
   ChatMessage,
+  OtpCode,
+  Notification,
+  UserNotificationSettings,
+  AuditLog,
+  Admin,
+  Report,
 } from '../entities';
 
 const PASSWORD = 'Test@1234';
@@ -31,6 +42,7 @@ async function seed() {
     database: process.env.DB_DATABASE || 'ssk_matrimonial',
     entities: [
       User,
+      UserSession,
       Profile,
       ProfileManager,
       ProfileBasicDetails,
@@ -42,16 +54,57 @@ async function seed() {
       ProfilePartnerPreferences,
       ProfilePrivacySettings,
       ProfileKundali,
+      KundaliPreferences,
+      GunaMatchResults,
+      ProfileSearchIndex,
       Verification,
       Connection,
+      Block,
       ChatThread,
       ChatMessage,
+      OtpCode,
+      Notification,
+      UserNotificationSettings,
+      AuditLog,
+      Admin,
+      Report,
     ],
     synchronize: false,
   });
 
   await dataSource.initialize();
   console.log('Database connected. Seeding...');
+
+  // Clear existing seed data (order matters due to FK constraints)
+  const tables = [
+    'chat_messages',
+    'chat_threads',
+    'connections',
+    'verifications',
+    'profile_kundali',
+    'kundali_preferences',
+    'guna_match_results',
+    'profile_search_index',
+    'profile_partner_preferences',
+    'profile_privacy_settings',
+    'profile_photos',
+    'profile_location',
+    'profile_lifestyle',
+    'profile_family_info',
+    'profile_education_career',
+    'profile_basic_details',
+    'profile_managers',
+    'profiles',
+    'user_sessions',
+    'otp_codes',
+    'notifications',
+    'user_notification_settings',
+    'users',
+  ];
+  for (const table of tables) {
+    await dataSource.query(`DELETE FROM ${table}`);
+  }
+  console.log('Cleared existing data');
 
   const passwordHash = await bcrypt.hash(PASSWORD, 12);
 
