@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   BasicInfoScreen,
@@ -13,11 +14,33 @@ import {
   VerificationScreen,
 } from '../screens/profile-creation';
 import { ProfileCreationProvider } from '../context';
-import { colors } from '../theme';
+import { useAuth } from '../context';
+import { colors, typography } from '../theme';
 
 import { ProfileCreationParamList } from './types';
 
 const Stack = createNativeStackNavigator<ProfileCreationParamList>();
+
+function LogoutButton() {
+  const { logout } = useAuth();
+
+  const handleLogout = useCallback(() => {
+    Alert.alert(
+      'Exit Profile Setup',
+      'Are you sure you want to logout? Your progress will be saved.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: () => logout() },
+      ],
+    );
+  }, [logout]);
+
+  return (
+    <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+      <Text style={styles.logoutText}>Logout</Text>
+    </TouchableOpacity>
+  );
+}
 
 export function ProfileCreationStack() {
   return (
@@ -28,6 +51,7 @@ export function ProfileCreationStack() {
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.primary,
           headerTitleStyle: { color: colors.text },
+          headerRight: () => <LogoutButton />,
         }}
       >
         <Stack.Screen name="ProfileBasicInfo" component={BasicInfoScreen} options={{ title: 'Basic Info', headerBackVisible: false }} />
@@ -44,3 +68,15 @@ export function ProfileCreationStack() {
     </ProfileCreationProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  logoutBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  logoutText: {
+    ...typography.bodySmall,
+    color: colors.error,
+    fontWeight: '600',
+  },
+});

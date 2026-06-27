@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { Button, Input, Card, StepNavigation } from '../../components';
 import { authApi } from '../../api/auth';
 import { verificationApi } from '../../api/verification';
@@ -12,7 +12,7 @@ interface VerificationScreenProps {
 }
 
 export function VerificationScreen({ navigation }: VerificationScreenProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { profile, refreshProfile } = useProfile();
 
   const [emailOtpSent, setEmailOtpSent] = useState(false);
@@ -95,6 +95,17 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
     }
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Exit Verification',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: () => logout() },
+      ],
+    );
+  };
+
   const handleCompleteProfile = async () => {
     if (!profile) return;
 
@@ -134,6 +145,12 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
       {navigation && <StepNavigation screenName="ProfileVerification" navigation={navigation} />}
 
       <Text style={styles.title}>Verify Your Identity</Text>
+      {!navigation && (
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      )}
+
       <Text style={styles.hint}>
         Verify your email and phone number to complete your profile. Your profile must be verified before you can view or connect with other profiles.
       </Text>
@@ -239,4 +256,6 @@ const styles = StyleSheet.create({
   notAvailable: { ...typography.bodySmall, color: colors.textLight },
   resendBtn: { marginTop: spacing.sm },
   completeBtn: { marginTop: spacing.lg },
+  logoutBtn: { alignSelf: 'flex-end', marginBottom: spacing.md, paddingVertical: spacing.sm },
+  logoutText: { ...typography.bodySmall, color: colors.error, fontWeight: '600' },
 });
