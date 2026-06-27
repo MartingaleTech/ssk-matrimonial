@@ -23,6 +23,17 @@ description: Test the SSK Matrimony platform (NestJS backend + React Native Expo
 - PostgreSQL database `ssk_matrimonial` (or as configured in `backend/.env`)
 - Tables auto-created by TypeORM `synchronize: true` on backend startup
 - No manual migrations needed in dev
+- If PostgreSQL isn't installed: `sudo apt-get install -y postgresql postgresql-client`
+- Start PostgreSQL: `sudo pg_ctlcluster 14 main start` (version may vary)
+- Create database: `sudo -u postgres createdb ssk_matrimonial && sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"`
+
+### Seeding Test Data
+1. Start the backend first (tables must exist via TypeORM synchronize)
+2. Run: `cd backend && npm run seed`
+3. Creates 8 users (password: `Test@1234`), 8 profiles, connections, chat threads
+4. The seed is idempotent — clears existing data before inserting
+5. Login with any seeded email + `Test@1234` to get a JWT for API testing
+6. Test accounts: `rahul.sharma@example.com`, `priya.patel@example.com`, etc.
 
 ## Devin Secrets Needed
 - None. The app uses local PostgreSQL with default credentials configured in `backend/.env.example`.
@@ -108,6 +119,8 @@ isAuthenticated && profile_status === 'active' → MainTabs + detail screens
 - Profile creation screens should NOT call `setProfile()` in a way that triggers `hasCompletedProfile` to become true before step 8
 - `clearStorage()` must remove profile/manager keys, not just auth keys, to prevent cross-user data leaks
 - Browser automation tool might be unavailable; have a shell-based testing fallback ready
+- When creating standalone TypeORM `DataSource` configs (e.g. seed scripts), you must list ALL entities referenced by relations — not just the ones you directly use. The `Profile` entity has `@OneToOne` to `KundaliPreferences`, `ProfileSearchIndex`, etc. Missing any causes `TypeORMError: Entity metadata not found`.
+- The seed script is shell-only testing — no recording needed. Verify via SQL queries and API calls.
 
 ## Expo Web Gotchas
 - `--non-interactive` flag is not supported; use `CI=1` environment variable instead
