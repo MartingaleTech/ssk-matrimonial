@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Input } from '../../components';
+import { Button, Input, StepNavigation } from '../../components';
 import { preferencesApi } from '../../api/preferences';
 import { profilesApi } from '../../api/profiles';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
 interface PartnerPreferencesScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
 
 export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScreenProps) {
@@ -62,8 +62,9 @@ export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScree
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <StepNavigation screenName="ProfilePreferences" navigation={navigation} />
+
       <Text style={styles.title}>Partner Preferences</Text>
-      <Text style={styles.step}>Step 8 of 9</Text>
 
       <Input label="Minimum Age" placeholder="21" value={ageMin} onChangeText={setAgeMin} keyboardType="numeric" />
       <Input label="Maximum Age" placeholder="35" value={ageMax} onChangeText={setAgeMax} keyboardType="numeric" />
@@ -82,7 +83,6 @@ export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScree
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
-  title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  step: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.lg },
+  title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   skip: { marginTop: spacing.sm },
 });

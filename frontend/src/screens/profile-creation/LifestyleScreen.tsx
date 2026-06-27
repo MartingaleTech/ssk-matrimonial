@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Input } from '../../components';
+import { Button, Input, StepNavigation } from '../../components';
 import { profilesApi } from '../../api/profiles';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
 interface LifestyleScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
 
 export function LifestyleScreen({ navigation }: LifestyleScreenProps) {
@@ -37,15 +37,16 @@ export function LifestyleScreen({ navigation }: LifestyleScreenProps) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <StepNavigation screenName="ProfileLifestyle" navigation={navigation} />
+
       <Text style={styles.title}>Lifestyle</Text>
-      <Text style={styles.step}>Step 4 of 9</Text>
 
       <Input label="Diet" placeholder="vegetarian / non_vegetarian / vegan" value={diet} onChangeText={setDiet} />
       <Input label="Smoking" placeholder="never / occasionally / regularly" value={smoking} onChangeText={setSmoking} />
       <Input label="Drinking" placeholder="never / occasionally / regularly" value={drinking} onChangeText={setDrinking} />
       <Input label="Hobbies" placeholder="reading, cooking, travel (comma separated)" value={hobbies} onChangeText={setHobbies} />
 
-      <Button title="Next" onPress={handleNext} loading={loading} />
+      <Button title="Save & Next" onPress={handleNext} loading={loading} />
       <Button title="Skip" variant="outline" onPress={() => navigation.navigate('ProfileLocation')} style={styles.skip} />
     </ScrollView>
   );
@@ -54,7 +55,6 @@ export function LifestyleScreen({ navigation }: LifestyleScreenProps) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
-  title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  step: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.lg },
+  title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   skip: { marginTop: spacing.sm },
 });
