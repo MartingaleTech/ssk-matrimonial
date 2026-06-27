@@ -35,9 +35,17 @@ export interface Profile {
   kundali_preferences?: Record<string, unknown>;
 }
 
+export interface MyProfileResponse {
+  profile: Profile | null;
+  manager: { id: string; role: string } | null;
+}
+
 export const profilesApi = {
   create: (data: CreateProfilePayload) =>
     client.post('/profiles', data),
+
+  getMe: () =>
+    client.get<MyProfileResponse>('/profiles/me'),
 
   get: (id: string) =>
     client.get<Profile>(`/profiles/${id}`),

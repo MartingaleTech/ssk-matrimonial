@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Button, Input } from '../../components';
 import { profilesApi } from '../../api/profiles';
-import { useAuth, useProfile } from '../../context';
+import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
 interface BasicInfoScreenProps {
@@ -10,14 +10,24 @@ interface BasicInfoScreenProps {
 }
 
 export function BasicInfoScreen({ navigation }: BasicInfoScreenProps) {
-  const { user } = useAuth();
-  const { setProfile, setManagerInfo } = useProfile();
+  const { profile, setProfile, setManagerInfo } = useProfile();
   const [displayName, setDisplayName] = useState('');
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [maritalStatus, setMaritalStatus] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || '');
+      setGender(profile.gender || '');
+      setDob(profile.date_of_birth || '');
+      setHeightCm(profile.height_cm ? String(profile.height_cm) : '');
+      setMaritalStatus(profile.marital_status || '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
 
   const handleNext = async () => {
     if (!displayName || !gender || !dob || !heightCm || !maritalStatus) {
@@ -26,18 +36,28 @@ export function BasicInfoScreen({ navigation }: BasicInfoScreenProps) {
     }
     setLoading(true);
     try {
-      const { data } = await profilesApi.create({
-        display_name: displayName,
-        gender,
-        date_of_birth: dob,
-        height_cm: parseInt(heightCm),
-        marital_status: maritalStatus,
-      });
-      setProfile(data.profile);
-      setManagerInfo(data.manager.id, data.manager.role);
+      if (profile) {
+        await profilesApi.update(profile.id, {
+          display_name: displayName,
+          gender,
+          date_of_birth: dob,
+          height_cm: parseInt(heightCm),
+          marital_status: maritalStatus,
+        });
+      } else {
+        const { data } = await profilesApi.create({
+          display_name: displayName,
+          gender,
+          date_of_birth: dob,
+          height_cm: parseInt(heightCm),
+          marital_status: maritalStatus,
+        });
+        setProfile(data.profile);
+        setManagerInfo(data.manager.id, data.manager.role);
+      }
       navigation.navigate('ProfileEducation');
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to create profile';
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to save profile';
       Alert.alert('Error', message);
     } finally {
       setLoading(false);
