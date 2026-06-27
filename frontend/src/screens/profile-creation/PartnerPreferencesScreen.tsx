@@ -6,7 +6,11 @@ import { profilesApi } from '../../api/profiles';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
-export function PartnerPreferencesScreen() {
+interface PartnerPreferencesScreenProps {
+  navigation: { navigate: (screen: string) => void };
+}
+
+export function PartnerPreferencesScreen({ navigation }: PartnerPreferencesScreenProps) {
   const { profile, refreshProfile } = useProfile();
   const [ageMin, setAgeMin] = useState('');
   const [ageMax, setAgeMax] = useState('');
@@ -17,10 +21,11 @@ export function PartnerPreferencesScreen() {
   const [locations, setLocations] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const completeProfile = async () => {
+  const moveToPendingVerification = async () => {
     if (!profile) return;
-    await profilesApi.update(profile.id, { profile_status: 'active' });
+    await profilesApi.update(profile.id, { profile_status: 'pending_verification' });
     await refreshProfile(profile.id);
+    navigation.navigate('ProfileVerification');
   };
 
   const handleSave = async () => {
@@ -36,7 +41,7 @@ export function PartnerPreferencesScreen() {
         occupations: occupations ? occupations.split(',').map((s) => s.trim()) : null,
         locations: locations ? locations.split(',').map((s) => s.trim()) : null,
       });
-      await completeProfile();
+      await moveToPendingVerification();
     } catch {
       Alert.alert('Error', 'Failed to save preferences');
     } finally {
@@ -47,9 +52,9 @@ export function PartnerPreferencesScreen() {
   const handleSkip = async () => {
     setLoading(true);
     try {
-      await completeProfile();
+      await moveToPendingVerification();
     } catch {
-      Alert.alert('Error', 'Failed to complete profile');
+      Alert.alert('Error', 'Failed to proceed to verification');
     } finally {
       setLoading(false);
     }
@@ -58,7 +63,7 @@ export function PartnerPreferencesScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Partner Preferences</Text>
-      <Text style={styles.step}>Step 8 of 8</Text>
+      <Text style={styles.step}>Step 8 of 9</Text>
 
       <Input label="Minimum Age" placeholder="21" value={ageMin} onChangeText={setAgeMin} keyboardType="numeric" />
       <Input label="Maximum Age" placeholder="35" value={ageMax} onChangeText={setAgeMax} keyboardType="numeric" />
@@ -68,8 +73,8 @@ export function PartnerPreferencesScreen() {
       <Input label="Occupations" placeholder="Engineer, Doctor (comma separated)" value={occupations} onChangeText={setOccupations} />
       <Input label="Preferred Locations" placeholder="Mumbai, Delhi (comma separated)" value={locations} onChangeText={setLocations} />
 
-      <Button title="Complete Profile" onPress={handleSave} loading={loading} />
-      <Button title="Skip" variant="outline" onPress={handleSkip} style={styles.skip} />
+      <Button title="Next: Verify Identity" onPress={handleSave} loading={loading} />
+      <Button title="Skip to Verification" variant="outline" onPress={handleSkip} style={styles.skip} />
     </ScrollView>
   );
 }

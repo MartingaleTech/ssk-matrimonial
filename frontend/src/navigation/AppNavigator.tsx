@@ -16,24 +16,30 @@ import { ManagerListScreen } from '../screens/managers/ManagerListScreen';
 import { AddManagerScreen } from '../screens/managers/AddManagerScreen';
 import { PrivacySettingsScreen } from '../screens/settings/PrivacySettingsScreen';
 import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
+import { EditProfileScreen } from '../screens/settings/EditProfileScreen';
 import { KundaliViewScreen } from '../screens/kundali/KundaliSummaryScreen';
 import { GunaBreakdownScreen } from '../screens/kundali/GunaBreakdownScreen';
 import { KundaliPreferencesScreen } from '../screens/kundali/KundaliPreferencesScreen';
 import { KundaliCompatibleMatchesScreen } from '../screens/kundali/KundaliCompatibleMatchesScreen';
+import { VerificationScreen } from '../screens/profile-creation/VerificationScreen';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
-  const { hasCompletedProfile, isProfileLoading } = useProfile();
+  const { profile, hasCompletedProfile, isProfileLoading } = useProfile();
 
   if (isLoading || (isAuthenticated && isProfileLoading)) return <LoadingScreen />;
+
+  const needsVerification = profile?.profile_status === 'pending_verification';
 
   return (
     <NavigationContainer>
       {!isAuthenticated ? (
         <AuthStack />
+      ) : needsVerification ? (
+        <VerificationScreen />
       ) : !hasCompletedProfile ? (
         <ProfileCreationStack />
       ) : (
@@ -49,6 +55,7 @@ export function AppNavigator() {
           <Stack.Screen name="AddManager" component={AddManagerScreen} options={{ title: 'Add Manager' }} />
           <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} options={{ title: 'Privacy' }} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Notifications' }} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
           <Stack.Screen name="KundaliSummary" component={KundaliViewScreen} options={{ title: 'Kundali' }} />
           <Stack.Screen name="GunaBreakdown" component={GunaBreakdownScreen} options={{ title: 'Guna Match' }} />
           <Stack.Screen name="KundaliPreferences" component={KundaliPreferencesScreen} options={{ title: 'Kundali Preferences' }} />

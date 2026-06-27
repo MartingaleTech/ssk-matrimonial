@@ -49,6 +49,12 @@ export class Profile {
   @Column({ type: 'boolean', default: false })
   has_kundali: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  email_verified: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  phone_verified: boolean;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 

@@ -44,7 +44,7 @@ export function EducationCareerScreen({ navigation }: EducationCareerScreenProps
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Education & Career</Text>
-      <Text style={styles.step}>Step 2 of 8</Text>
+      <Text style={styles.step}>Step 2 of 9</Text>
 
       <Input label="Highest Education" placeholder="e.g. Masters" value={highestEducation} onChangeText={setHighestEducation} />
       <Input label="Education Details" placeholder="e.g. MBA from IIM" value={educationDetails} onChangeText={setEducationDetails} />

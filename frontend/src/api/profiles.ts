@@ -19,8 +19,20 @@ export interface Profile {
   about_me: string | null;
   profile_status: string;
   has_kundali: boolean;
+  email_verified: boolean;
+  phone_verified: boolean;
   created_at: string;
   updated_at: string;
+  basic_details?: Record<string, unknown>;
+  education_career?: Record<string, unknown>;
+  family_info?: Record<string, unknown>;
+  lifestyle?: Record<string, unknown>;
+  location?: Record<string, unknown>;
+  photos?: unknown[];
+  privacy_settings?: Record<string, unknown>;
+  partner_preferences?: Record<string, unknown>;
+  kundali?: Record<string, unknown>;
+  kundali_preferences?: Record<string, unknown>;
 }
 
 export const profilesApi = {

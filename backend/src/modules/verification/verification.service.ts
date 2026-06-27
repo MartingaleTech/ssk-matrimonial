@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Verification } from '../../database/entities';
+import { Verification, Profile } from '../../database/entities';
 import { VerifyDocumentDto, VerifyContactDto } from './dto';
 
 @Injectable()
@@ -9,28 +9,40 @@ export class VerificationService {
   constructor(
     @InjectRepository(Verification)
     private verificationRepo: Repository<Verification>,
+    @InjectRepository(Profile)
+    private profileRepo: Repository<Profile>,
   ) {}
 
   async verifyEmail(dto: VerifyContactDto) {
     const verification = this.verificationRepo.create({
       profile_id: dto.profile_id,
       type: 'email',
-      status: 'pending',
+      status: 'verified',
       requested_at: new Date(),
+      verified_at: new Date(),
       metadata: { email: dto.email },
     });
-    return this.verificationRepo.save(verification);
+    await this.verificationRepo.save(verification);
+
+    await this.profileRepo.update(dto.profile_id, { email_verified: true });
+
+    return verification;
   }
 
   async verifyPhone(dto: VerifyContactDto) {
     const verification = this.verificationRepo.create({
       profile_id: dto.profile_id,
       type: 'phone',
-      status: 'pending',
+      status: 'verified',
       requested_at: new Date(),
+      verified_at: new Date(),
       metadata: { phone: dto.phone },
     });
-    return this.verificationRepo.save(verification);
+    await this.verificationRepo.save(verification);
+
+    await this.profileRepo.update(dto.profile_id, { phone_verified: true });
+
+    return verification;
   }
 
   async verifyDocument(dto: VerifyDocumentDto) {
@@ -53,6 +65,16 @@ export class VerificationService {
       where: { profile_id: profileId },
       order: { requested_at: 'DESC' },
     });
-    return { profile_id: profileId, verifications };
+
+    const profile = await this.profileRepo.findOne({
+      where: { id: profileId },
+    });
+
+    return {
+      profile_id: profileId,
+      email_verified: profile?.email_verified ?? false,
+      phone_verified: profile?.phone_verified ?? false,
+      verifications,
+    };
   }
 }

@@ -7,3 +7,4 @@ export { KundaliInputScreen } from './KundaliInputScreen';
 export { KundaliSummaryScreen } from './KundaliSummaryScreen';
 export { PhotoUploadScreen } from './PhotoUploadScreen';
 export { PartnerPreferencesScreen } from './PartnerPreferencesScreen';
+export { VerificationScreen } from './VerificationScreen';

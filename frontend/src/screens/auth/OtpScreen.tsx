@@ -33,7 +33,10 @@ export function OtpScreen({ route, navigation }: OtpScreenProps) {
     }
     setLoading(true);
     try {
-      await authApi.verifyOtp({ user_id: userId, code, channel });
+      const verifyData = channel === 'email'
+        ? { email: destination, code }
+        : { phone: destination, code };
+      await authApi.verifyOtp(verifyData);
       Alert.alert('Success', 'Verification complete');
       navigation.goBack();
     } catch {
@@ -45,7 +48,10 @@ export function OtpScreen({ route, navigation }: OtpScreenProps) {
 
   const handleResend = async () => {
     try {
-      await authApi.sendOtp({ channel, destination });
+      const sendData = channel === 'email'
+        ? { email: destination, channel }
+        : { phone: destination, channel };
+      await authApi.sendOtp(sendData);
       Alert.alert('OTP Sent', 'A new OTP has been sent');
     } catch {
       Alert.alert('Error', 'Failed to resend OTP');

@@ -45,7 +45,7 @@ export function KundaliInputScreen({ navigation }: KundaliInputScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Kundali Details</Text>
-      <Text style={styles.step}>Step 6 of 8</Text>
+      <Text style={styles.step}>Step 6 of 9</Text>
 
       <Input label="Birth Date" placeholder="YYYY-MM-DD" value={birthDate} onChangeText={setBirthDate} />
       <Input label="Birth Time" placeholder="HH:MM (24hr)" value={birthTime} onChangeText={setBirthTime} />
