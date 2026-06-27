@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Button, Card, LoadingScreen } from '../../components';
+import { Button, Card, LoadingScreen, StepNavigation } from '../../components';
 import { kundaliApi, KundaliData } from '../../api/kundali';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
 interface KundaliSummaryScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
 
 export function KundaliSummaryScreen({ navigation }: KundaliSummaryScreenProps) {
@@ -27,6 +27,8 @@ export function KundaliSummaryScreen({ navigation }: KundaliSummaryScreenProps) 
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <StepNavigation screenName="ProfileKundaliSummary" navigation={navigation} />
+
       <Text style={styles.title}>Kundali Summary</Text>
 
       {kundali ? (

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Input } from '../../components';
+import { Button, Input, StepNavigation } from '../../components';
 import { kundaliApi } from '../../api/kundali';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
 interface KundaliInputScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
 
 export function KundaliInputScreen({ navigation }: KundaliInputScreenProps) {
@@ -44,8 +44,9 @@ export function KundaliInputScreen({ navigation }: KundaliInputScreenProps) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <StepNavigation screenName="ProfileKundaliInput" navigation={navigation} />
+
       <Text style={styles.title}>Kundali Details</Text>
-      <Text style={styles.step}>Step 6 of 9</Text>
 
       <Input label="Birth Date" placeholder="YYYY-MM-DD" value={birthDate} onChangeText={setBirthDate} />
       <Input label="Birth Time" placeholder="HH:MM (24hr)" value={birthTime} onChangeText={setBirthTime} />
@@ -62,7 +63,6 @@ export function KundaliInputScreen({ navigation }: KundaliInputScreenProps) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
-  title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  step: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.lg },
+  title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   skip: { marginTop: spacing.sm },
 });

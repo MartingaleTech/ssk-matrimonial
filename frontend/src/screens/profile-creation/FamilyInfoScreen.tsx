@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Input } from '../../components';
+import { Button, Input, StepNavigation } from '../../components';
 import { profilesApi } from '../../api/profiles';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
 interface FamilyInfoScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
 
 export function FamilyInfoScreen({ navigation }: FamilyInfoScreenProps) {
@@ -43,8 +43,9 @@ export function FamilyInfoScreen({ navigation }: FamilyInfoScreenProps) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <StepNavigation screenName="ProfileFamily" navigation={navigation} />
+
       <Text style={styles.title}>Family Information</Text>
-      <Text style={styles.step}>Step 3 of 9</Text>
 
       <Input label="Family Type" placeholder="joint / nuclear" value={familyType} onChangeText={setFamilyType} />
       <Input label="Father's Occupation" placeholder="Occupation" value={fatherOccupation} onChangeText={setFatherOccupation} />
@@ -54,7 +55,7 @@ export function FamilyInfoScreen({ navigation }: FamilyInfoScreenProps) {
       <Input label="Family Status" placeholder="middle_class / upper_middle / affluent" value={familyStatus} onChangeText={setFamilyStatus} />
       <Input label="Family Values" placeholder="traditional / moderate / liberal" value={familyValues} onChangeText={setFamilyValues} />
 
-      <Button title="Next" onPress={handleNext} loading={loading} />
+      <Button title="Save & Next" onPress={handleNext} loading={loading} />
       <Button title="Skip" variant="outline" onPress={() => navigation.navigate('ProfileLifestyle')} style={styles.skip} />
     </ScrollView>
   );
@@ -63,7 +64,6 @@ export function FamilyInfoScreen({ navigation }: FamilyInfoScreenProps) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
-  title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  step: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.lg },
+  title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   skip: { marginTop: spacing.sm },
 });

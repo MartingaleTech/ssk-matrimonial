@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Input } from '../../components';
+import { Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Button, Input, StepNavigation } from '../../components';
 import { profilesApi } from '../../api/profiles';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
 interface EducationCareerScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
 
 export function EducationCareerScreen({ navigation }: EducationCareerScreenProps) {
@@ -43,8 +43,9 @@ export function EducationCareerScreen({ navigation }: EducationCareerScreenProps
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <StepNavigation screenName="ProfileEducation" navigation={navigation} />
+
       <Text style={styles.title}>Education & Career</Text>
-      <Text style={styles.step}>Step 2 of 9</Text>
 
       <Input label="Highest Education" placeholder="e.g. Masters" value={highestEducation} onChangeText={setHighestEducation} />
       <Input label="Education Details" placeholder="e.g. MBA from IIM" value={educationDetails} onChangeText={setEducationDetails} />
@@ -54,7 +55,7 @@ export function EducationCareerScreen({ navigation }: EducationCareerScreenProps
       <Input label="Work City" placeholder="City" value={workCity} onChangeText={setWorkCity} />
       <Input label="Work Country" placeholder="Country" value={workCountry} onChangeText={setWorkCountry} />
 
-      <Button title="Next" onPress={handleNext} loading={loading} />
+      <Button title="Save & Next" onPress={handleNext} loading={loading} />
       <Button title="Skip" variant="outline" onPress={() => navigation.navigate('ProfileFamily')} style={styles.skip} />
     </ScrollView>
   );
@@ -63,7 +64,6 @@ export function EducationCareerScreen({ navigation }: EducationCareerScreenProps
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
-  title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  step: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.lg },
+  title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   skip: { marginTop: spacing.sm },
 });

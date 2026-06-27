@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Input, Card } from '../../components';
+import { Button, Input, Card, StepNavigation } from '../../components';
 import { authApi } from '../../api/auth';
 import { verificationApi } from '../../api/verification';
 import { profilesApi } from '../../api/profiles';
 import { useAuth, useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
-export function VerificationScreen() {
+interface VerificationScreenProps {
+  navigation?: { navigate: (screen: string) => void; goBack: () => void };
+}
+
+export function VerificationScreen({ navigation }: VerificationScreenProps) {
   const { user } = useAuth();
   const { profile, refreshProfile } = useProfile();
 
@@ -127,8 +131,9 @@ export function VerificationScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {navigation && <StepNavigation screenName="ProfileVerification" navigation={navigation} />}
+
       <Text style={styles.title}>Verify Your Identity</Text>
-      <Text style={styles.step}>Step 9 of 9</Text>
       <Text style={styles.hint}>
         Verify your email and phone number to complete your profile. Your profile must be verified before you can view or connect with other profiles.
       </Text>

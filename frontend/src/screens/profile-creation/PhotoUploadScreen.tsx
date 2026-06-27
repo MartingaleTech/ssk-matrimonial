@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, Alert, TouchableOpacity, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Button } from '../../components';
+import { Button, StepNavigation } from '../../components';
 import { photosApi } from '../../api/photos';
 import { useProfile } from '../../context';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 
 interface PhotoUploadScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
 
 export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
@@ -73,8 +73,9 @@ export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
 
   return (
     <View style={styles.container}>
+      <StepNavigation screenName="ProfilePhotos" navigation={navigation} />
+
       <Text style={styles.title}>Upload Photos</Text>
-      <Text style={styles.step}>Step 7 of 9</Text>
       <Text style={styles.hint}>Add up to 6 photos. First photo will be your primary photo.</Text>
 
       <View style={styles.grid}>
@@ -100,7 +101,7 @@ export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
       </View>
 
       <View style={styles.actions}>
-        <Button title="Next" onPress={handleNext} loading={uploading} />
+        <Button title="Save & Next" onPress={handleNext} loading={uploading} />
         <Button title="Skip" variant="outline" onPress={handleNext} style={styles.skip} />
       </View>
     </View>
@@ -110,7 +111,6 @@ export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  step: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.sm },
   hint: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.lg },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xl },
   photoSlot: {
