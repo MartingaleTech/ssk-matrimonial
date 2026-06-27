@@ -96,6 +96,18 @@ export class ProfilesService {
     return { profile, manager };
   }
 
+  async findByUser(userId: string) {
+    const manager = await this.managerRepo.findOne({
+      where: { user_id: userId },
+      order: { is_primary: 'DESC' },
+    });
+    if (!manager) {
+      return { profile: null, manager: null };
+    }
+    const profile = await this.findOne(manager.profile_id);
+    return { profile, manager };
+  }
+
   async findOne(id: string) {
     const profile = await this.profileRepo.findOne({
       where: { id },

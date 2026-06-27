@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { profilesApi, Profile } from '../api/profiles';
 import { useAuth } from './AuthContext';
@@ -26,20 +26,26 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [managerRole, setManagerRole] = useState<string | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadStoredProfile();
-    } else {
-      setProfileState(null);
-      setManagerId(null);
-      setManagerRole(null);
-      setIsProfileLoading(false);
-    }
-  }, [isAuthenticated]);
-
-  const loadStoredProfile = async () => {
-    setIsProfileLoading(true);
+  const fetchProfileFromBackend = useCallback(async () => {
     try {
+      const { data } = await profilesApi.getMe();
+      if (data.profile) {
+        setProfileState(data.profile);
+        await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(data.profile));
+        if (data.manager) {
+          setManagerId(data.manager.id);
+          setManagerRole(data.manager.role);
+          await AsyncStorage.setItem(MANAGER_KEY, JSON.stringify(data.manager));
+        }
+      } else {
+        setProfileState(null);
+        setManagerId(null);
+        setManagerRole(null);
+        await AsyncStorage.removeItem(PROFILE_KEY);
+        await AsyncStorage.removeItem(MANAGER_KEY);
+      }
+    } catch {
+      // If backend fetch fails, fall back to cached AsyncStorage data
       const storedProfile = await AsyncStorage.getItem(PROFILE_KEY);
       const storedManager = await AsyncStorage.getItem(MANAGER_KEY);
       if (storedProfile) {
@@ -50,10 +56,22 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setManagerId(mgr.id);
         setManagerRole(mgr.role);
       }
-    } catch { /* silent */ } finally {
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      setIsProfileLoading(true);
+      fetchProfileFromBackend().finally(() => {
+        setIsProfileLoading(false);
+      });
+    } else {
+      setProfileState(null);
+      setManagerId(null);
+      setManagerRole(null);
       setIsProfileLoading(false);
     }
-  };
+  }, [isAuthenticated, token, fetchProfileFromBackend]);
 
   const setProfile = (p: Profile | null) => {
     setProfileState(p);

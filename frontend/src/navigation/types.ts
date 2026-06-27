@@ -11,6 +11,7 @@ export type RootStackParamList = {
   PrivacySettings: undefined;
   NotificationSettings: undefined;
   EditProfile: undefined;
+  EditPreferences: undefined;
   KundaliSummary: undefined;
   GunaBreakdown: { matchId?: string; profile2Id?: string } | undefined;
   KundaliPreferences: undefined;

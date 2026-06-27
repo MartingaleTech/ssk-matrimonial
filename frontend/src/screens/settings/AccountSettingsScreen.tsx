@@ -75,6 +75,7 @@ export function AccountSettingsScreen({ navigation }: AccountSettingsScreenProps
       <Card style={styles.card}>
         <Text style={styles.sectionTitle}>Profile</Text>
         <Button title="Edit Profile" variant="outline" onPress={() => navigation.navigate('EditProfile')} style={styles.btn} />
+        <Button title="Partner Preferences" variant="outline" onPress={() => navigation.navigate('EditPreferences')} style={styles.btn} />
       </Card>
 
       <Card style={styles.card}>

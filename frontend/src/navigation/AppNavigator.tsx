@@ -17,6 +17,7 @@ import { AddManagerScreen } from '../screens/managers/AddManagerScreen';
 import { PrivacySettingsScreen } from '../screens/settings/PrivacySettingsScreen';
 import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
 import { EditProfileScreen } from '../screens/settings/EditProfileScreen';
+import { EditPreferencesScreen } from '../screens/settings/EditPreferencesScreen';
 import { KundaliViewScreen } from '../screens/kundali/KundaliSummaryScreen';
 import { GunaBreakdownScreen } from '../screens/kundali/GunaBreakdownScreen';
 import { KundaliPreferencesScreen } from '../screens/kundali/KundaliPreferencesScreen';
@@ -56,6 +57,7 @@ export function AppNavigator() {
           <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} options={{ title: 'Privacy' }} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Notifications' }} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
+          <Stack.Screen name="EditPreferences" component={EditPreferencesScreen} options={{ title: 'Partner Preferences' }} />
           <Stack.Screen name="KundaliSummary" component={KundaliViewScreen} options={{ title: 'Kundali' }} />
           <Stack.Screen name="GunaBreakdown" component={GunaBreakdownScreen} options={{ title: 'Guna Match' }} />
           <Stack.Screen name="KundaliPreferences" component={KundaliPreferencesScreen} options={{ title: 'Kundali Preferences' }} />

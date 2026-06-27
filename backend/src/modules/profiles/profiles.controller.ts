@@ -32,6 +32,11 @@ export class ProfilesController {
     return this.profilesService.create(dto, userId);
   }
 
+  @Get('me')
+  findMyProfile(@CurrentUser('id') userId: string) {
+    return this.profilesService.findByUser(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.profilesService.findOne(id);
