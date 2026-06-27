@@ -4,6 +4,7 @@ import {
   Get,
   Body,
   Query,
+  BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -25,6 +26,9 @@ export class VerificationController {
     userId: string,
     profileId: string,
   ): Promise<void> {
+    if (!userId || !profileId) {
+      throw new BadRequestException('User ID and profile ID are required');
+    }
     const manager = await this.profileManagerRepo.findOne({
       where: { user_id: userId, profile_id: profileId },
     });
@@ -65,6 +69,9 @@ export class VerificationController {
     @Query('profile_id') profileId: string,
     @CurrentUser('id') userId: string,
   ) {
+    if (!profileId) {
+      throw new BadRequestException('profile_id query parameter is required');
+    }
     await this.assertProfileAccess(userId, profileId);
     return this.verificationService.getStatus(profileId);
   }
