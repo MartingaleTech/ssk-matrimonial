@@ -47,7 +47,7 @@ export function BasicInfoScreen({ navigation }: BasicInfoScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Basic Information</Text>
-      <Text style={styles.step}>Step 1 of 8</Text>
+      <Text style={styles.step}>Step 1 of 9</Text>
 
       <Input label="Display Name" placeholder="Your name" value={displayName} onChangeText={setDisplayName} />
       <Input label="Gender" placeholder="male / female" value={gender} onChangeText={setGender} />

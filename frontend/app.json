@@ -14,14 +14,23 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ssk.matrimonial"
+      "bundleIdentifier": "com.ssk.matrimonial",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "SSK Matrimonial needs access to your photo library to upload profile photos.",
+        "NSCameraUsageDescription": "SSK Matrimonial needs access to your camera to take profile photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ssk.matrimonial"
+      "package": "com.ssk.matrimonial",
+      "permissions": [
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+        "CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -29,7 +38,14 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "SSK Matrimonial needs access to your photo library to upload profile photos.",
+          "cameraPermission": "SSK Matrimonial needs access to your camera to take profile photos."
+        }
+      ]
     ]
   }
 }

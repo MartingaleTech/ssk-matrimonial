@@ -10,6 +10,7 @@ export type RootStackParamList = {
   AddManager: undefined;
   PrivacySettings: undefined;
   NotificationSettings: undefined;
+  EditProfile: undefined;
   KundaliSummary: undefined;
   GunaBreakdown: { matchId?: string; profile2Id?: string } | undefined;
   KundaliPreferences: undefined;
@@ -33,4 +34,5 @@ export type ProfileCreationParamList = {
   ProfileKundaliSummary: undefined;
   ProfilePhotos: undefined;
   ProfilePreferences: undefined;
+  ProfileVerification: undefined;
 };

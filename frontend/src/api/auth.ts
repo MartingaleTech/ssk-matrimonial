@@ -24,10 +24,10 @@ export const authApi = {
   login: (data: LoginPayload) =>
     client.post<AuthResponse>('/auth/login', data),
 
-  sendOtp: (data: { channel: string; destination: string }) =>
+  sendOtp: (data: { email?: string; phone?: string; channel: string }) =>
     client.post('/auth/send-otp', data),
 
-  verifyOtp: (data: { user_id: string; code: string; channel: string }) =>
+  verifyOtp: (data: { email?: string; phone?: string; code: string }) =>
     client.post('/auth/verify-otp', data),
 
   logout: () => client.post('/auth/logout'),

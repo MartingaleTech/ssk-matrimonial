@@ -38,7 +38,7 @@ export function LifestyleScreen({ navigation }: LifestyleScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Lifestyle</Text>
-      <Text style={styles.step}>Step 4 of 8</Text>
+      <Text style={styles.step}>Step 4 of 9</Text>
 
       <Input label="Diet" placeholder="vegetarian / non_vegetarian / vegan" value={diet} onChangeText={setDiet} />
       <Input label="Smoking" placeholder="never / occasionally / regularly" value={smoking} onChangeText={setSmoking} />

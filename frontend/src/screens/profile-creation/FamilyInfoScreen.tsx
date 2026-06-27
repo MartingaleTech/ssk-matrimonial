@@ -44,7 +44,7 @@ export function FamilyInfoScreen({ navigation }: FamilyInfoScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Family Information</Text>
-      <Text style={styles.step}>Step 3 of 8</Text>
+      <Text style={styles.step}>Step 3 of 9</Text>
 
       <Input label="Family Type" placeholder="joint / nuclear" value={familyType} onChangeText={setFamilyType} />
       <Input label="Father's Occupation" placeholder="Occupation" value={fatherOccupation} onChangeText={setFatherOccupation} />

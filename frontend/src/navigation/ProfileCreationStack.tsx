@@ -10,6 +10,7 @@ import {
   KundaliSummaryScreen,
   PhotoUploadScreen,
   PartnerPreferencesScreen,
+  VerificationScreen,
 } from '../screens/profile-creation';
 
 import { ProfileCreationParamList } from './types';
@@ -28,6 +29,7 @@ export function ProfileCreationStack() {
       <Stack.Screen name="ProfileKundaliSummary" component={KundaliSummaryScreen} />
       <Stack.Screen name="ProfilePhotos" component={PhotoUploadScreen} />
       <Stack.Screen name="ProfilePreferences" component={PartnerPreferencesScreen} />
+      <Stack.Screen name="ProfileVerification" component={VerificationScreen} />
     </Stack.Navigator>
   );
 }

@@ -38,7 +38,7 @@ export function LocationScreen({ navigation }: LocationScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Location</Text>
-      <Text style={styles.step}>Step 5 of 8</Text>
+      <Text style={styles.step}>Step 5 of 9</Text>
 
       <Input label="Country" placeholder="India" value={country} onChangeText={setCountry} />
       <Input label="State" placeholder="Your state" value={state} onChangeText={setState} />
