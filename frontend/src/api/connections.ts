@@ -9,6 +9,8 @@ export interface Connection {
   requested_at: string;
   responded_at: string | null;
   message: string | null;
+  from_profile?: { id: string; display_name: string };
+  to_profile?: { id: string; display_name: string };
 }
 
 export const connectionsApi = {
@@ -23,6 +25,9 @@ export const connectionsApi = {
 
   cancel: (id: string, data: { profile_id: string }) =>
     client.patch(`/connections/${id}/cancel`, data),
+
+  resend: (id: string, data: { profile_id: string; message?: string }) =>
+    client.patch(`/connections/${id}/resend`, data),
 
   list: (params?: { profile_id?: string; status?: string }) =>
     client.get<Connection[]>('/connections', { params }),

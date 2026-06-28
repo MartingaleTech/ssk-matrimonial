@@ -35,6 +35,15 @@ export class ConnectionsController {
     return this.connectionsService.cancel(id, userId);
   }
 
+  @Patch(':id/resend')
+  resend(
+    @Param('id') id: string,
+    @Body() body: { message?: string },
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.connectionsService.resend(id, userId, body.message);
+  }
+
   @Get()
   findAll(
     @Query() query: Record<string, string>,

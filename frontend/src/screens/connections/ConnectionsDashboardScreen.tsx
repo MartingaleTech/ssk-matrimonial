@@ -53,6 +53,37 @@ export function ConnectionsDashboardScreen({ navigation }: ConnectionsDashboardS
     }
   };
 
+  const handleResend = async (id: string) => {
+    if (!profile) return;
+    try {
+      await connectionsApi.resend(id, { profile_id: profile.id });
+      Alert.alert('Success', 'Connection request resent');
+      loadConnections();
+    } catch {
+      Alert.alert('Error', 'Failed to resend connection request');
+    }
+  };
+
+  const getOtherProfile = (item: Connection) => {
+    const isIncoming = item.to_profile_id === profile?.id;
+    if (isIncoming) {
+      return {
+        id: item.from_profile_id,
+        displayName: item.from_profile?.display_name || 'Unknown',
+        direction: 'Incoming' as const,
+      };
+    }
+    return {
+      id: item.to_profile_id,
+      displayName: item.to_profile?.display_name || 'Unknown',
+      direction: 'Sent' as const,
+    };
+  };
+
+  const handleViewProfile = (profileId: string) => {
+    navigation.navigate('ProfileDetail', { profileId });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Connections</Text>
@@ -76,25 +107,39 @@ export function ConnectionsDashboardScreen({ navigation }: ConnectionsDashboardS
           data={connections}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
-            const isIncoming = item.to_profile_id === profile?.id;
+            const other = getOtherProfile(item);
+            const isIncoming = other.direction === 'Incoming';
             return (
-              <Card style={styles.card}>
-                <View style={styles.row}>
-                  <Avatar name={isIncoming ? item.from_profile_id : item.to_profile_id} size={44} />
-                  <View style={styles.info}>
-                    <Text style={styles.name}>
-                      {isIncoming ? 'Incoming' : 'Sent'} Connection
-                    </Text>
-                    <Text style={styles.meta}>{item.status} • {new Date(item.requested_at).toLocaleDateString()}</Text>
+              <TouchableOpacity onPress={() => handleViewProfile(other.id)}>
+                <Card style={styles.card}>
+                  <View style={styles.row}>
+                    <Avatar name={other.displayName} size={44} />
+                    <View style={styles.info}>
+                      <Text style={styles.name}>{other.displayName}</Text>
+                      <Text style={styles.meta}>
+                        {other.direction} • {new Date(item.requested_at).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.viewBtn}
+                      onPress={() => handleViewProfile(other.id)}
+                    >
+                      <Text style={styles.viewBtnText}>View</Text>
+                    </TouchableOpacity>
                   </View>
-                </View>
-                {isIncoming && item.status === 'pending' && (
-                  <View style={styles.actions}>
-                    <Button title="Accept" onPress={() => handleAccept(item.id)} style={styles.actionBtn} />
-                    <Button title="Reject" variant="outline" onPress={() => handleReject(item.id)} style={styles.actionBtn} />
-                  </View>
-                )}
-              </Card>
+                  {isIncoming && item.status === 'pending' && (
+                    <View style={styles.actions}>
+                      <Button title="Accept" onPress={() => handleAccept(item.id)} style={styles.actionBtn} />
+                      <Button title="Reject" variant="outline" onPress={() => handleReject(item.id)} style={styles.actionBtn} />
+                    </View>
+                  )}
+                  {!isIncoming && item.status === 'rejected' && (
+                    <View style={styles.actions}>
+                      <Button title="Resend Request" onPress={() => handleResend(item.id)} style={styles.actionBtn} />
+                    </View>
+                  )}
+                </Card>
+              </TouchableOpacity>
             );
           }}
           ListEmptyComponent={<Text style={styles.empty}>No {filter} connections</Text>}
@@ -117,6 +162,8 @@ const styles = StyleSheet.create({
   info: { flex: 1, marginLeft: spacing.md },
   name: { ...typography.body, fontWeight: '500', color: colors.text },
   meta: { ...typography.caption, color: colors.textSecondary },
+  viewBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  viewBtnText: { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
   actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   actionBtn: { flex: 1 },
   empty: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
