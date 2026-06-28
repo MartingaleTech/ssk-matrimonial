@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { chatApi, ChatMessage } from '../../api/chat';
 import { useProfile } from '../../context';
@@ -7,15 +7,29 @@ import { colors, spacing, typography, borderRadius } from '../../theme';
 interface ChatScreenProps {
   [key: string]: any;
   route: { params: { threadId: string; otherProfileId: string } };
+  navigation: { navigate: (screen: string, params?: Record<string, unknown>) => void; setOptions: (opts: Record<string, unknown>) => void };
 }
 
-export function ChatScreen({ route }: ChatScreenProps) {
-  const { threadId } = route.params;
+export function ChatScreen({ route, navigation }: ChatScreenProps) {
+  const { threadId, otherProfileId } = route.params;
   const { profile } = useProfile();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ProfileDetail', { profileId: otherProfileId })}
+          style={styles.headerBtn}
+        >
+          <Text style={styles.headerBtnText}>View Profile</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, otherProfileId]);
 
   useEffect(() => {
     loadMessages();
@@ -92,4 +106,6 @@ const styles = StyleSheet.create({
   input: { flex: 1, ...typography.body, color: colors.text, backgroundColor: colors.surface, borderRadius: borderRadius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginRight: spacing.sm },
   sendBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.full },
   sendText: { ...typography.button, color: colors.white },
+  headerBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  headerBtnText: { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
 });

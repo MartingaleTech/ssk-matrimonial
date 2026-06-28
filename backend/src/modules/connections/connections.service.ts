@@ -119,6 +119,42 @@ export class ConnectionsService {
     return this.connectionRepo.save(connection);
   }
 
+  async resend(id: string, userId: string, message?: string) {
+    const connection = await this.getConnectionOrFail(id);
+    await this.getOwnerOrParentManager(userId, connection.from_profile_id);
+
+    if (connection.status !== 'rejected' && connection.status !== 'cancelled') {
+      throw new BadRequestException(
+        'Can only resend rejected or cancelled connections',
+      );
+    }
+
+    // Check blocks
+    const block = await this.blockRepo.findOne({
+      where: [
+        {
+          blocked_by_profile_id: connection.from_profile_id,
+          blocked_profile_id: connection.to_profile_id,
+        },
+        {
+          blocked_by_profile_id: connection.to_profile_id,
+          blocked_profile_id: connection.from_profile_id,
+        },
+      ],
+    });
+    if (block) {
+      throw new ForbiddenException('Cannot connect - profile is blocked');
+    }
+
+    connection.status = 'pending';
+    connection.requested_at = new Date();
+    connection.responded_at = null;
+    if (message !== undefined) {
+      connection.message = message;
+    }
+    return this.connectionRepo.save(connection);
+  }
+
   async findAll(query: Record<string, string>, userId: string) {
     const profileId = query.profile_id;
     if (!profileId) {
@@ -134,6 +170,10 @@ export class ConnectionsService {
 
     const qb = this.connectionRepo
       .createQueryBuilder('c')
+      .leftJoin('c.from_profile', 'fromProfile')
+      .leftJoin('c.to_profile', 'toProfile')
+      .addSelect(['fromProfile.id', 'fromProfile.display_name'])
+      .addSelect(['toProfile.id', 'toProfile.display_name'])
       .where('(c.from_profile_id = :pid OR c.to_profile_id = :pid)', {
         pid: profileId,
       });
