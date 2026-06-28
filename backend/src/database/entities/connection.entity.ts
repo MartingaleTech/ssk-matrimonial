@@ -31,7 +31,7 @@ export class Connection {
   requested_at: Date;
 
   @Column({ type: 'timestamptz', nullable: true })
-  responded_at: Date;
+  responded_at: Date | null;
 
   @Column({ type: 'text', nullable: true })
   message: string;
