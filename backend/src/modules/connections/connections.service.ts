@@ -121,7 +121,10 @@ export class ConnectionsService {
 
   async resend(id: string, userId: string, message?: string) {
     const connection = await this.getConnectionOrFail(id);
-    await this.getOwnerOrParentManager(userId, connection.from_profile_id);
+    const manager = await this.getOwnerOrParentManager(
+      userId,
+      connection.from_profile_id,
+    );
 
     if (connection.status !== 'rejected' && connection.status !== 'cancelled') {
       throw new BadRequestException(
@@ -149,6 +152,7 @@ export class ConnectionsService {
     connection.status = 'pending';
     connection.requested_at = new Date();
     connection.responded_at = null;
+    connection.initiated_by_manager_id = manager.id;
     if (message !== undefined) {
       connection.message = message;
     }
@@ -168,22 +172,25 @@ export class ConnectionsService {
       throw new ForbiddenException('You are not a manager of this profile');
     }
 
-    const qb = this.connectionRepo
-      .createQueryBuilder('c')
-      .leftJoin('c.from_profile', 'fromProfile')
-      .leftJoin('c.to_profile', 'toProfile')
-      .addSelect(['fromProfile.id', 'fromProfile.display_name'])
-      .addSelect(['toProfile.id', 'toProfile.display_name'])
-      .where('(c.from_profile_id = :pid OR c.to_profile_id = :pid)', {
-        pid: profileId,
-      });
-
+    const where: Array<Record<string, unknown>> = [];
     if (query.status) {
-      qb.andWhere('c.status = :status', { status: query.status });
+      where.push(
+        { from_profile_id: profileId, status: query.status },
+        { to_profile_id: profileId, status: query.status },
+      );
+    } else {
+      where.push({ from_profile_id: profileId }, { to_profile_id: profileId });
     }
 
-    qb.orderBy('c.requested_at', 'DESC');
-    return qb.getMany();
+    return this.connectionRepo.find({
+      where,
+      relations: ['from_profile', 'to_profile'],
+      select: {
+        from_profile: { id: true, display_name: true },
+        to_profile: { id: true, display_name: true },
+      },
+      order: { requested_at: 'DESC' },
+    });
   }
 
   private async getConnectionOrFail(id: string): Promise<Connection> {

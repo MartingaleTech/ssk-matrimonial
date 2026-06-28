@@ -89,7 +89,7 @@ export function ConnectionsDashboardScreen({ navigation }: ConnectionsDashboardS
       <Text style={styles.title}>Connections</Text>
 
       <View style={styles.filters}>
-        {['pending', 'accepted', 'rejected'].map((s) => (
+        {['pending', 'accepted', 'rejected', 'cancelled'].map((s) => (
           <TouchableOpacity
             key={s}
             style={[styles.filterBtn, filter === s && styles.filterActive]}
@@ -133,7 +133,7 @@ export function ConnectionsDashboardScreen({ navigation }: ConnectionsDashboardS
                       <Button title="Reject" variant="outline" onPress={() => handleReject(item.id)} style={styles.actionBtn} />
                     </View>
                   )}
-                  {!isIncoming && item.status === 'rejected' && (
+                  {!isIncoming && (item.status === 'rejected' || item.status === 'cancelled') && (
                     <View style={styles.actions}>
                       <Button title="Resend Request" onPress={() => handleResend(item.id)} style={styles.actionBtn} />
                     </View>
