@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { TwilioService } from './twilio.service';
 import { JwtStrategy } from './jwt.strategy';
 import { User, UserSession, OtpCode } from '../../database/entities';
 
@@ -22,7 +23,7 @@ import { User, UserSession, OtpCode } from '../../database/entities';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, TwilioService, JwtStrategy],
+  exports: [AuthService, TwilioService, JwtModule],
 })
 export class AuthModule {}
