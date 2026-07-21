@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { Button } from '../../components';
+import { Button, ScreenContainer } from '../../components';
 import { colors, spacing, typography } from '../../theme';
 
 interface WelcomeScreenProps {
@@ -9,7 +9,7 @@ interface WelcomeScreenProps {
 
 export function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.hero}>
         <Text style={styles.title}>SSK Matrimony</Text>
         <Text style={styles.subtitle}>
@@ -29,7 +29,7 @@ export function WelcomeScreen({ navigation }: WelcomeScreenProps) {
           style={styles.registerBtn}
         />
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

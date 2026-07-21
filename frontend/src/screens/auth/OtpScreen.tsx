@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
-import { Button } from '../../components';
+import { Button, ScreenContainer } from '../../components';
 import { authApi } from '../../api/auth';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 
@@ -59,7 +59,7 @@ export function OtpScreen({ route, navigation }: OtpScreenProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container} edges={['top', 'bottom']}>
       <Text style={styles.title}>Verify OTP</Text>
       <Text style={styles.subtitle}>
         Enter the 6-digit code sent to {destination}
@@ -81,7 +81,7 @@ export function OtpScreen({ route, navigation }: OtpScreenProps) {
 
       <Button title="Verify" onPress={handleVerify} loading={loading} />
       <Button title="Resend OTP" variant="outline" onPress={handleResend} style={styles.resend} />
-    </View>
+    </ScreenContainer>
   );
 }
 
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.lg,
   },
   title: {
     ...typography.h2,
