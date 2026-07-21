@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Card } from '../../components';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Card, ScreenContainer } from '../../components';
 import { colors, spacing, typography } from '../../theme';
 
 interface AccountSetupChoiceScreenProps {
@@ -9,7 +9,7 @@ interface AccountSetupChoiceScreenProps {
 
 export function AccountSetupChoiceScreen({ navigation }: AccountSetupChoiceScreenProps) {
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container} edges={['top', 'bottom']}>
       <Text style={styles.title}>Setup Your Account</Text>
       <Text style={styles.subtitle}>How would you like to get started?</Text>
 
@@ -26,7 +26,7 @@ export function AccountSetupChoiceScreen({ navigation }: AccountSetupChoiceScree
           <Text style={styles.cardDesc}>I am helping a family member find a match</Text>
         </Card>
       </TouchableOpacity>
-    </View>
+    </ScreenContainer>
   );
 }
 
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.lg,
   },
   title: {
     ...typography.h2,

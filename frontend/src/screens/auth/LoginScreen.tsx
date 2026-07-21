@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { Button, Input } from '../../components';
+import { Button, Input, ScreenContainer } from '../../components';
 import { useAuth } from '../../context';
 import { colors, spacing, typography } from '../../theme';
 
@@ -44,7 +44,8 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
   };
 
   return (
-    <KeyboardAvoidingView
+    <ScreenContainer edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
@@ -92,7 +93,8 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
           </Text>
         </Text>
       </TouchableOpacity>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ScreenContainer>
   );
 }
 
