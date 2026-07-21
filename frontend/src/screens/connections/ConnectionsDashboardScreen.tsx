@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Card, Avatar, Button, LoadingScreen } from '../../components';
+import { Card, Avatar, Button, LoadingScreen, ScreenContainer } from '../../components';
 import { connectionsApi, Connection } from '../../api/connections';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
@@ -85,7 +85,7 @@ export function ConnectionsDashboardScreen({ navigation }: ConnectionsDashboardS
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <Text style={styles.title}>Connections</Text>
 
       <View style={styles.filters}>
@@ -145,7 +145,7 @@ export function ConnectionsDashboardScreen({ navigation }: ConnectionsDashboardS
           ListEmptyComponent={<Text style={styles.empty}>No {filter} connections</Text>}
         />
       )}
-    </View>
+    </ScreenContainer>
   );
 }
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
-import { Button, Card } from '../../components';
+import { Button, Card, ScreenContainer } from '../../components';
 import { profilesApi } from '../../api/profiles';
 import { useAuth, useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
@@ -57,7 +57,8 @@ export function AccountSettingsScreen({ navigation }: AccountSettingsScreenProps
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScreenContainer>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Account Settings</Text>
 
       <Card style={styles.card}>
@@ -89,7 +90,8 @@ export function AccountSettingsScreen({ navigation }: AccountSettingsScreenProps
         <Button title="Logout" variant="outline" onPress={handleLogout} loading={loggingOut} />
         <Button title="Delete Profile" variant="outline" onPress={handleDeleteProfile} loading={deleting} style={styles.deleteBtn} />
       </View>
-    </ScrollView>
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 

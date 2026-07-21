@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
-import { Button, Input, Card, StepNavigation } from '../../components';
+import { Button, Input, Card, StepNavigation, ScreenContainer } from '../../components';
 import { authApi } from '../../api/auth';
 import { verificationApi } from '../../api/verification';
 import { profilesApi } from '../../api/profiles';
@@ -141,7 +141,8 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScreenContainer edges={navigation ? [] : ['top']}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {navigation && <StepNavigation screenName="ProfileVerification" navigation={navigation} />}
 
       <Text style={styles.title}>Verify Your Identity</Text>
@@ -232,7 +233,8 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
         }
         style={styles.completeBtn}
       />
-    </ScrollView>
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 

@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { chatApi, ChatMessage } from '../../api/chat';
 import { useProfile } from '../../context';
 import { colors, spacing, typography, borderRadius } from '../../theme';
@@ -13,6 +15,8 @@ interface ChatScreenProps {
 export function ChatScreen({ route, navigation }: ChatScreenProps) {
   const { threadId, otherProfileId } = route.params;
   const { profile } = useProfile();
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -68,7 +72,11 @@ export function ChatScreen({ route, navigation }: ChatScreenProps) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={headerHeight}
+    >
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -77,7 +85,7 @@ export function ChatScreen({ route, navigation }: ChatScreenProps) {
         contentContainerStyle={styles.messages}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
       />
-      <View style={styles.inputRow}>
+      <View style={[styles.inputRow, { paddingBottom: spacing.sm + insets.bottom }]}>
         <TextInput
           style={styles.input}
           value={input}
