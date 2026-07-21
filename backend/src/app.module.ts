@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
-import { databaseConfig, jwtConfig } from './config';
+import { databaseConfig, jwtConfig, twilioConfig } from './config';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 import { AuthModule } from './modules/auth/auth.module';
@@ -23,7 +23,7 @@ import { AdminModule } from './modules/admin/admin.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig],
+      load: [databaseConfig, jwtConfig, twilioConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

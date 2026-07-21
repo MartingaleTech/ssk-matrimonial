@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User, UserSession, OtpCode } from '../../database/entities';
 import { RegisterDto, LoginDto, SendOtpDto, VerifyOtpDto } from './dto';
+import { TwilioService, VerificationChannel } from './twilio.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     @InjectRepository(OtpCode)
     private otpRepo: Repository<OtpCode>,
     private jwtService: JwtService,
+    private twilioService: TwilioService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -112,17 +114,32 @@ export class AuthService {
       throw new BadRequestException('User not found');
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const channel: VerificationChannel =
+      dto.channel === 'email' ? 'email' : 'sms';
+    const to = channel === 'email' ? dto.email : dto.phone;
+    if (!to) {
+      throw new BadRequestException(
+        `A ${channel === 'email' ? 'email' : 'phone'} is required for the ${channel} channel`,
+      );
+    }
+
+    // Twilio Verify generates, delivers and expires the code on its side, so
+    // we no longer store the code locally. We keep a lightweight audit row to
+    // track when a verification was requested.
+    const verification = await this.twilioService.startVerification(
+      to,
+      channel,
+    );
+
     const otp = this.otpRepo.create({
       user_id: user.id,
       channel: dto.channel,
-      code,
+      code: 'twilio',
       expires_at: new Date(Date.now() + 10 * 60 * 1000),
     });
     await this.otpRepo.save(otp);
 
-    // In production, send via email/SMS provider
-    return { message: 'OTP sent successfully', otp_id: otp.id };
+    return { message: 'OTP sent successfully', status: verification.status };
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
@@ -136,21 +153,24 @@ export class AuthService {
       throw new BadRequestException('User not found');
     }
 
-    const otp = await this.otpRepo
-      .createQueryBuilder('otp')
-      .where('otp.user_id = :userId', { userId: user.id })
-      .andWhere('otp.code = :code', { code: dto.code })
-      .andWhere('otp.expires_at > :now', { now: new Date() })
-      .andWhere('otp.used_at IS NULL')
-      .orderBy('otp.created_at', 'DESC')
-      .getOne();
+    const to = dto.email ?? dto.phone;
+    if (!to) {
+      throw new BadRequestException('Email or phone is required');
+    }
 
-    if (!otp) {
+    const approved = await this.twilioService.checkVerification(to, dto.code);
+    if (!approved) {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
-    otp.used_at = new Date();
-    await this.otpRepo.save(otp);
+    // Best-effort: mark the most recent pending audit row as used.
+    await this.otpRepo
+      .createQueryBuilder()
+      .update(OtpCode)
+      .set({ used_at: new Date() })
+      .where('user_id = :userId', { userId: user.id })
+      .andWhere('used_at IS NULL')
+      .execute();
 
     const token = this.generateToken(user);
     return { verified: true, token };
