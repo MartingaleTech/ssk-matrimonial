@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import { Button, Card, LoadingScreen } from '../../components';
+import { Button, Card, LoadingScreen, ScreenContainer } from '../../components';
 import { searchApi } from '../../api/search';
 import { connectionsApi } from '../../api/connections';
 import { useProfile } from '../../context';
@@ -68,16 +68,16 @@ export function SwipeScreen({ navigation }: SwipeScreenProps) {
 
   if (!current) {
     return (
-      <View style={styles.emptyContainer}>
+      <ScreenContainer style={styles.emptyContainer}>
         <Text style={styles.emptyTitle}>No More Profiles</Text>
         <Text style={styles.emptyText}>Check back later for new matches</Text>
         <Button title="Refresh" onPress={loadMatches} style={styles.refreshBtn} />
-      </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <Card style={styles.card}>
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{current.display_name || 'Profile'}</Text>
@@ -93,7 +93,7 @@ export function SwipeScreen({ navigation }: SwipeScreenProps) {
         <Button title="Skip" variant="outline" onPress={nextCard} style={styles.actionBtn} />
         <Button title="Connect" onPress={handleConnect} style={styles.actionBtn} />
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { Avatar, Card, LoadingScreen } from '../../components';
+import { Avatar, Card, LoadingScreen, ScreenContainer } from '../../components';
 import { chatApi, ChatThread } from '../../api/chat';
 import { useProfile } from '../../context';
 import { colors, spacing, typography } from '../../theme';
@@ -26,7 +26,7 @@ export function ChatListScreen({ navigation }: ChatListScreenProps) {
   if (loading) return <LoadingScreen />;
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <Text style={styles.title}>Chats</Text>
       <FlatList
         data={threads}
@@ -59,7 +59,7 @@ export function ChatListScreen({ navigation }: ChatListScreenProps) {
           <Text style={styles.empty}>No conversations yet. Connect with profiles to start chatting.</Text>
         }
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
