@@ -11,3 +11,6 @@ export { blocksApi } from './blocks';
 export { photosApi } from './photos';
 export { preferencesApi } from './preferences';
 export { verificationApi } from './verification';
+export { favoritesApi } from './favorites';
+export { subscriptionsApi } from './subscriptions';
+export { paymentsApi } from './payments';

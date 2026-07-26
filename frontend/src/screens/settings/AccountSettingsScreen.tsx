@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Button, Card, ScreenContainer } from '../../components';
 import { profilesApi } from '../../api/profiles';
 import { useAuth, useProfile } from '../../context';
+import { useEntitlements } from '../../hooks';
 import { colors, spacing, typography } from '../../theme';
 
 interface AccountSettingsScreenProps {
@@ -12,6 +13,7 @@ interface AccountSettingsScreenProps {
 export function AccountSettingsScreen({ navigation }: AccountSettingsScreenProps) {
   const { user, logout } = useAuth();
   const { profile } = useProfile();
+  const { entitlements } = useEntitlements();
   const [loggingOut, setLoggingOut] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -74,7 +76,23 @@ export function AccountSettingsScreen({ navigation }: AccountSettingsScreenProps
       </Card>
 
       <Card style={styles.card}>
+        <Text style={styles.sectionTitle}>Plan</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Current plan</Text>
+          <Text style={styles.value}>
+            {entitlements.plan}{entitlements.is_free_trial ? ' (trial)' : ''}
+          </Text>
+        </View>
+        {entitlements.plan === 'basic' && (
+          <Button title="Upgrade to Premium" onPress={() => navigation.navigate('Plans')} style={styles.btn} />
+        )}
+        <Button title="Manage Subscription" variant="outline" onPress={() => navigation.navigate('ManageSubscription')} style={styles.btn} />
+      </Card>
+
+      <Card style={styles.card}>
         <Text style={styles.sectionTitle}>Profile</Text>
+        <Button title="My Profile" variant="outline" onPress={() => navigation.navigate('MyProfile')} style={styles.btn} />
+        <Button title="Favorites" variant="outline" onPress={() => navigation.navigate('Favorites')} style={styles.btn} />
         <Button title="Edit Profile" variant="outline" onPress={() => navigation.navigate('EditProfile')} style={styles.btn} />
         <Button title="Partner Preferences" variant="outline" onPress={() => navigation.navigate('EditPreferences')} style={styles.btn} />
       </Card>

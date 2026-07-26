@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { Card, Avatar, LoadingScreen } from '../../components';
+import { Card, Avatar, Button, LoadingScreen } from '../../components';
 import { kundaliApi } from '../../api/kundali';
 import { useProfile } from '../../context';
+import { useEntitlements } from '../../hooks';
 import { colors, spacing, typography } from '../../theme';
 
 interface KundaliCompatibleMatchesScreenProps {
@@ -20,19 +21,37 @@ interface KundaliMatch {
 
 export function KundaliCompatibleMatchesScreen({ navigation }: KundaliCompatibleMatchesScreenProps) {
   const { profile } = useProfile();
+  const { entitlements, loading: entitlementsLoading } = useEntitlements();
   const [matches, setMatches] = useState<KundaliMatch[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (profile) {
-      kundaliApi.searchByKundali({ profile_id: profile.id })
-        .then(({ data }) => setMatches(Array.isArray(data) ? data : data.results || []))
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
-  }, [profile]);
+  const canUseKundaliMatching = entitlements.can_use_kundali_matching;
 
-  if (loading) return <LoadingScreen />;
+  useEffect(() => {
+    if (entitlementsLoading) return;
+    if (!profile || !canUseKundaliMatching) {
+      setLoading(false);
+      return;
+    }
+    kundaliApi.searchByKundali({ profile_id: profile.id })
+      .then(({ data }) => setMatches(Array.isArray(data) ? data : data.results || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [profile, canUseKundaliMatching, entitlementsLoading]);
+
+  if (loading || entitlementsLoading) return <LoadingScreen />;
+
+  if (!canUseKundaliMatching) {
+    return (
+      <View style={styles.upgrade}>
+        <Text style={styles.title}>Kundali matching is a premium feature</Text>
+        <Text style={styles.meta}>
+          Upgrade to Premium to see guna scores and Kundali compatible matches.
+        </Text>
+        <Button title="See Premium plans" onPress={() => navigation.navigate('Plans')} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -69,6 +88,13 @@ export function KundaliCompatibleMatchesScreen({ navigation }: KundaliCompatible
 }
 
 const styles = StyleSheet.create({
+  upgrade: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
+    gap: spacing.md,
+  },
   container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   card: { marginBottom: spacing.sm },

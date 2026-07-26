@@ -18,11 +18,11 @@ src/
     public.decorator.ts            # @Public() - skip JWT guard
     current-user.decorator.ts      # @CurrentUser() - extract user from request
     roles.decorator.ts             # @Roles() - specify required roles
-  database/entities/               # 27 TypeORM entities
-  modules/                         # 13 feature modules (controller + service + DTOs)
+  database/entities/               # 32 TypeORM entities
+  modules/                         # 16 feature modules (controller + service + DTOs)
 ```
 
-## Database Schema (27 Entities)
+## Database Schema (32 Entities)
 
 ### Core
 
@@ -75,6 +75,36 @@ src/
 | `AuditLog` | `audit_logs` | uuid | Action log (actor_user_id, actor_manager_id, profile_id, action, metadata) |
 | `Admin` | `admins` | uuid | Admin user mapping (user_id, role) |
 | `Report` | `reports` | uuid | Profile reports (reason, status, resolution) |
+| `Favorite` | `favorites` | uuid | Premium favorite (profile_id, favorited_profile_id). UNIQUE(profile_id, favorited_profile_id) |
+
+### Subscriptions & Payments
+
+| Entity | Table | PK | Description |
+|--------|-------|-----|-------------|
+| `SubscriptionPlan` | `subscription_plans` | uuid | Plan definition (code `basic`/`premium`, name, features JSONB) |
+| `PlanPrice` | `plan_prices` | uuid | Country pricing (country `IN`/`US`, currency `INR`/`USD`, amount in minor units, interval `month`, provider_price_id) |
+| `Subscription` | `subscriptions` | uuid | Profile subscription (status, provider `stripe`/`razorpay`, provider IDs (encrypted), period, is_free_trial) |
+| `Payment` | `payments` | uuid | Payment record (provider, provider_payment_id (encrypted), amount, currency, status, method) |
+
+Pricing seeded per country (integer minor units):
+
+| Plan | India | United States |
+|------|-------|---------------|
+| Basic | 49900 paise (₹499/mo) | 499 cents ($4.99/mo) |
+| Premium | 99900 paise (₹999/mo) | 999 cents ($9.99/mo) |
+
+### Plan Entitlements
+
+| Feature | Basic | Premium |
+|---------|-------|---------|
+| Photos | 5 | 10 |
+| Favorites | No | Yes |
+| Kundali matching / kundali search | No | Yes |
+| Everything else (search, connections, chat) | Yes | Yes |
+
+The first 100 fully verified profiles (email **and** phone verified) receive a
+6-month premium free trial. The grant runs inside a `SERIALIZABLE` transaction
+that re-counts granted trials, so the 100 cap holds under concurrency.
 
 ### Profile Status Lifecycle
 
@@ -269,6 +299,83 @@ Match quality: `excellent` (>= 28), `very_good` (>= 21), `good` (>= 18), `averag
 | POST | `/verification/document` | JWT | Submit document for verification |
 | GET | `/verification/status` | JWT | Get verification status |
 
+### Favorites Module (premium)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/favorites` | JWT + premium | Favorite a profile |
+| GET | `/favorites?profile_id=` | JWT + premium | List favorites for a managed profile |
+| DELETE | `/favorites/:favoritedProfileId?profile_id=` | JWT | Remove a favorite |
+
+### Subscriptions Module
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/subscriptions/plans?country=` | Public | Plans with country pricing (defaults to IN) |
+| GET | `/subscriptions/me?profile_id=` | JWT | Current subscription + entitlements |
+| POST | `/subscriptions/checkout` | JWT (owner/parent) | Creates the provider subscription and returns client params |
+| POST | `/subscriptions/cancel` | JWT (owner/parent) | Cancels at the provider and locally |
+
+Provider selection follows the profile country (`Profile.country`, falling back
+to `ProfileLocation.country`): India → Razorpay (UPI, netbanking, cards),
+United States → Stripe (cards, Apple Pay, ACH bank debit).
+
+### Payments Module
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/payments/webhook/stripe` | Public, signature-verified | Updates subscription/payment state |
+| POST | `/payments/webhook/razorpay` | Public, signature-verified | Updates subscription/payment state |
+
+Webhooks verify the signature against the raw request bytes (`rawBody: true` in
+`main.ts`), are excluded from rate limiting, and are idempotent per
+`(provider, provider_payment_id)`. A checkout creates a local subscription in
+`past_due`; it becomes `active` only when the provider confirms payment.
+
+**iOS note:** Apple requires digital subscriptions sold inside an iOS App Store
+build to use StoreKit / In-App Purchase. The Stripe Apple Pay flow here covers
+Android and web; shipping on the App Store needs a StoreKit flow as an
+additional provider. This is flagged as an open product decision.
+
+## Security
+
+| Control | Implementation |
+|---------|----------------|
+| CORS | `CORS_ORIGIN` comma-separated allowlist; `*` and empty values are rejected when `NODE_ENV=production` |
+| Headers | `helmet()` applied globally |
+| Validation | Global `ValidationPipe` with `whitelist`, `forbidNonWhitelisted`, `transform` |
+| JWT | No hardcoded fallback; boot fails when `JWT_SECRET` is unset in production |
+| Rate limiting | `@nestjs/throttler` global guard (120 req/min); `/auth/*` and subscription mutations are throttled tighter; webhooks are skipped |
+| Field encryption | AES-256-GCM TypeORM transformers keyed by `DATA_ENCRYPTION_KEY` on user phone, verification metadata and provider identifiers |
+| Response masking | Non-managers get privacy-filtered profiles; manager listings return masked email/phone |
+| Card data | Never stored — only provider customer/subscription/payment IDs |
+
+`DATA_ENCRYPTION_KEY` must be 32 bytes (64 hex chars or base64), e.g.
+`openssl rand -hex 32`. Boot fails in production when it is missing. Rotating
+the key requires re-encrypting existing rows.
+
+### PostgreSQL TLS and encryption at rest
+
+1. Set `DB_SSL=true` so TypeORM negotiates TLS. Provide the server CA in
+   `DB_SSL_CA` and keep `DB_SSL_REJECT_UNAUTHORIZED=true` so certificates are
+   verified. Managed providers (RDS, Cloud SQL, Azure) publish their CA bundle.
+2. On self-hosted PostgreSQL, enable `ssl = on` with `ssl_cert_file` /
+   `ssl_key_file`, and require TLS for app users via `hostssl` entries in
+   `pg_hba.conf`.
+3. For encryption at rest, enable storage-level encryption (RDS/Cloud SQL
+   encryption with KMS-managed keys, or LUKS/dm-crypt volumes when
+   self-hosting) and encrypt backups/snapshots with the same keys.
+4. Field-level encryption above protects sensitive columns even if a dump
+   leaks; keep `DATA_ENCRYPTION_KEY` in a secret manager, never in the repo.
+
+### Production migrations
+
+`synchronize` is enabled only outside production, so new entities auto-create
+tables in development. Production deployments must run TypeORM migrations
+(`synchronize: false`) — including the change of `verifications.metadata` from
+`jsonb` to encrypted text and the encrypted `users.phone` column, which require
+a data backfill for existing rows.
+
 ## Permission Model
 
 ### Manager Roles
@@ -308,6 +415,9 @@ AppModule (root)
   |-- KundaliModule (astrology engine, guna matching)
   |-- VerificationModule (email/phone/document verification)
   |-- AdminModule (admin user management)
+  |-- SubscriptionsModule (plans, checkout, cancel, EntitlementsService, free trial)
+  |-- PaymentsModule (StripeService, RazorpayService, webhooks)
+  |-- FavoritesModule (premium favorites)
 ```
 
 ## Development

@@ -1,22 +1,29 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Card, Avatar, LoadingScreen } from '../../components';
+import { Button, Card, Avatar, LoadingScreen, PhotoGallery } from '../../components';
 import { profilesApi, Profile } from '../../api/profiles';
 import { connectionsApi, Connection } from '../../api/connections';
+import { photosApi, Photo } from '../../api/photos';
+import { favoritesApi } from '../../api/favorites';
 import { useProfile } from '../../context';
+import { useEntitlements } from '../../hooks';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 
 interface ProfileDetailScreenProps {
   [key: string]: any;
   route: { params: { profileId: string } };
-  navigation: { goBack: () => void };
+  navigation: { goBack: () => void; navigate: (screen: string, params?: object) => void };
 }
 
-export function ProfileDetailScreen({ route }: ProfileDetailScreenProps) {
+export function ProfileDetailScreen({ route, navigation }: ProfileDetailScreenProps) {
   const { profileId } = route.params;
   const { profile: myProfile } = useProfile();
+  const { entitlements } = useEntitlements();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [connection, setConnection] = useState<Connection | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -41,6 +48,20 @@ export function ProfileDetailScreen({ route }: ProfileDetailScreenProps) {
     }
   }, [myProfile, profileId, isOwnProfile]);
 
+  const loadFavorite = useCallback(async () => {
+    if (!myProfile || isOwnProfile || !entitlements.can_favorite) {
+      setIsFavorite(false);
+      return;
+    }
+    try {
+      const { data } = await favoritesApi.list(myProfile.id);
+      const list = Array.isArray(data) ? data : [];
+      setIsFavorite(list.some((f) => f.favorited_profile_id === profileId));
+    } catch {
+      setIsFavorite(false);
+    }
+  }, [myProfile, isOwnProfile, profileId, entitlements.can_favorite]);
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
@@ -48,9 +69,44 @@ export function ProfileDetailScreen({ route }: ProfileDetailScreenProps) {
         .get(profileId)
         .then(({ data }) => setProfile(data))
         .catch(() => {}),
+      photosApi
+        .list(profileId)
+        .then(({ data }) => setPhotos(Array.isArray(data) ? data : []))
+        .catch(() => setPhotos([])),
       loadConnection(),
+      loadFavorite(),
     ]).finally(() => setLoading(false));
-  }, [profileId, loadConnection]);
+  }, [profileId, loadConnection, loadFavorite]);
+
+  const handleToggleFavorite = async () => {
+    if (!myProfile) return;
+    if (!entitlements.can_favorite) {
+      Alert.alert(
+        'Premium feature',
+        'Favorites are available on the Premium plan.',
+        [{ text: 'Not now' }, { text: 'See plans', onPress: () => navigation.navigate('Plans') }],
+      );
+      return;
+    }
+
+    setFavoriteLoading(true);
+    try {
+      if (isFavorite) {
+        await favoritesApi.remove(myProfile.id, profileId);
+        setIsFavorite(false);
+      } else {
+        await favoritesApi.add({
+          profile_id: myProfile.id,
+          favorited_profile_id: profileId,
+        });
+        setIsFavorite(true);
+      }
+    } catch {
+      Alert.alert('Error', 'Could not update favorites. Please try again.');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
 
   const runAction = async (
     fn: () => Promise<unknown>,
@@ -165,11 +221,26 @@ export function ProfileDetailScreen({ route }: ProfileDetailScreenProps) {
         </Text>
       </View>
 
+      <Card style={styles.section}>
+        <Text style={styles.sectionTitle}>Photos</Text>
+        <PhotoGallery photos={photos} emptyLabel="No photos shared" />
+      </Card>
+
       {profile.about_me && (
         <Card style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
           <Text style={styles.sectionText}>{profile.about_me}</Text>
         </Card>
+      )}
+
+      {!isOwnProfile && (
+        <Button
+          title={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+          variant="outline"
+          onPress={handleToggleFavorite}
+          loading={favoriteLoading}
+          style={styles.spaced}
+        />
       )}
 
       {renderConnectionAction()}
