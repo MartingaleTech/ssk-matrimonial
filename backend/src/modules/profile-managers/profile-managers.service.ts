@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileManager } from '../../database/entities';
+import { maskEmail, maskPhone } from '../../common/utils/masking';
 import { CreateManagerDto, UpdateManagerDto } from './dto';
 
 @Injectable()
@@ -40,11 +41,28 @@ export class ProfileManagersService {
     return this.managerRepo.save(manager);
   }
 
-  async findAll(profileId: string) {
-    return this.managerRepo.find({
+  async findAll(profileId: string, viewerUserId?: string) {
+    const managers = await this.managerRepo.find({
       where: { profile_id: profileId },
       relations: ['user'],
     });
+
+    return managers.map((manager) => ({
+      ...manager,
+      user: manager.user
+        ? {
+            id: manager.user.id,
+            email:
+              manager.user.id === viewerUserId
+                ? manager.user.email
+                : maskEmail(manager.user.email),
+            phone:
+              manager.user.id === viewerUserId
+                ? manager.user.phone
+                : maskPhone(manager.user.phone),
+          }
+        : null,
+    }));
   }
 
   async update(

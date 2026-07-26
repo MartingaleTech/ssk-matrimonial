@@ -25,3 +25,8 @@ export { UserNotificationSettings } from './user-notification-settings.entity';
 export { AuditLog } from './audit-log.entity';
 export { Admin } from './admin.entity';
 export { Report } from './report.entity';
+export { Favorite } from './favorite.entity';
+export { SubscriptionPlan } from './subscription-plan.entity';
+export { PlanPrice } from './plan-price.entity';
+export { Subscription } from './subscription.entity';
+export { Payment } from './payment.entity';

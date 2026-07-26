@@ -28,6 +28,11 @@ import {
   AuditLog,
   Admin,
   Report,
+  Favorite,
+  SubscriptionPlan,
+  PlanPrice,
+  Subscription,
+  Payment,
 } from '../entities';
 
 const PASSWORD = 'Test@1234';
@@ -68,6 +73,11 @@ async function seed() {
       AuditLog,
       Admin,
       Report,
+      Favorite,
+      SubscriptionPlan,
+      PlanPrice,
+      Subscription,
+      Payment,
     ],
     synchronize: false,
   });
@@ -77,6 +87,11 @@ async function seed() {
 
   // Clear existing seed data (order matters due to FK constraints)
   const tables = [
+    'payments',
+    'subscriptions',
+    'plan_prices',
+    'subscription_plans',
+    'favorites',
     'chat_messages',
     'chat_threads',
     'connections',
@@ -1057,6 +1072,71 @@ async function seed() {
   }
 
   console.log('Created chat threads and messages');
+
+  // ── Subscription plans & country pricing ───────────────────────────
+  const planRepo = dataSource.getRepository(SubscriptionPlan);
+  const priceRepo = dataSource.getRepository(PlanPrice);
+  const subscriptionRepo = dataSource.getRepository(Subscription);
+  const favoriteRepo = dataSource.getRepository(Favorite);
+
+  const basicPlan = await planRepo.save(
+    planRepo.create({
+      code: 'basic',
+      name: 'Basic',
+      features: {
+        photo_limit: 5,
+        favorites: false,
+        kundali_matching: false,
+      },
+    }),
+  );
+  const premiumPlan = await planRepo.save(
+    planRepo.create({
+      code: 'premium',
+      name: 'Premium',
+      features: {
+        photo_limit: 10,
+        favorites: true,
+        kundali_matching: true,
+      },
+    }),
+  );
+
+  // Amounts are integer minor units (paise / cents).
+  const priceData = [
+    { plan_id: basicPlan.id, country: 'IN', currency: 'INR', amount: 49900 },
+    { plan_id: premiumPlan.id, country: 'IN', currency: 'INR', amount: 99900 },
+    { plan_id: basicPlan.id, country: 'US', currency: 'USD', amount: 499 },
+    { plan_id: premiumPlan.id, country: 'US', currency: 'USD', amount: 999 },
+  ];
+  for (const price of priceData) {
+    await priceRepo.save(priceRepo.create({ ...price, interval: 'month' }));
+  }
+  console.log('Created subscription plans and prices');
+
+  // ── Sample premium subscription + favorites ────────────────────────
+  const trialStart = new Date();
+  const trialEnd = new Date(trialStart);
+  trialEnd.setMonth(trialEnd.getMonth() + 6);
+
+  await subscriptionRepo.save(
+    subscriptionRepo.create({
+      profile_id: profiles[0].id,
+      plan_id: premiumPlan.id,
+      status: 'trialing',
+      is_free_trial: true,
+      current_period_start: trialStart,
+      current_period_end: trialEnd,
+    }),
+  );
+
+  await favoriteRepo.save(
+    favoriteRepo.create({
+      profile_id: profiles[0].id,
+      favorited_profile_id: profiles[3].id,
+    }),
+  );
+  console.log('Created sample free-trial subscription and favorite');
 
   // ── Summary ────────────────────────────────────────────────────────
   console.log('\n=== Seed Complete ===');

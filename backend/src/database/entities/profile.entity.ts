@@ -46,6 +46,14 @@ export class Profile {
   @Column({ type: 'varchar', length: 20, default: 'draft' })
   profile_status: string;
 
+  /** ISO 3166-1 alpha-2 country code. Drives subscription pricing/currency. */
+  @Column({ type: 'varchar', length: 2, nullable: true })
+  country: string;
+
+  /** ISO 4217 currency code derived from `country`. */
+  @Column({ type: 'varchar', length: 3, nullable: true })
+  currency: string;
+
   @Column({ type: 'boolean', default: false })
   has_kundali: boolean;
 

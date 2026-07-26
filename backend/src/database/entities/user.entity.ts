@@ -12,6 +12,7 @@ import { ProfileManager } from './profile-manager.entity';
 import { OtpCode } from './otp-code.entity';
 import { Notification } from './notification.entity';
 import { UserNotificationSettings } from './user-notification-settings.entity';
+import { searchableEncryptedString } from '../../common/crypto/encryption';
 
 @Entity('users')
 export class User {
@@ -21,7 +22,14 @@ export class User {
   @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 20, unique: true, nullable: true })
+  /** Encrypted at rest with a deterministic IV so lookups by phone still work. */
+  @Column({
+    type: 'varchar',
+    length: 255,
+    unique: true,
+    nullable: true,
+    transformer: searchableEncryptedString,
+  })
   phone: string;
 
   @Column({ type: 'varchar', length: 255 })

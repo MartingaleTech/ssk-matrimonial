@@ -7,12 +7,14 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, SendOtpDto, VerifyOtpDto } from './dto';
 import { Public } from '../../common/decorators';
 import { CurrentUser } from '../../common/decorators';
 
 @Controller('auth')
+@Throttle({ default: { limit: 10, ttl: 60_000 } })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

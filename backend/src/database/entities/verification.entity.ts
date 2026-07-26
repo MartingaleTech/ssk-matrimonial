@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Profile } from './profile.entity';
+import { encryptedJson } from '../../common/crypto/encryption';
 
 @Entity('verifications')
 export class Verification {
@@ -30,7 +31,8 @@ export class Verification {
   @Column({ type: 'uuid', nullable: true })
   verified_by_admin_id: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  /** Encrypted at rest: holds contact details and identity document metadata. */
+  @Column({ type: 'text', nullable: true, transformer: encryptedJson })
   metadata: Record<string, unknown>;
 
   @ManyToOne(() => Profile, { onDelete: 'CASCADE' })

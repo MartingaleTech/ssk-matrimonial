@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ProfileManagersService } from './profile-managers.service';
 import { CreateManagerDto, UpdateManagerDto } from './dto';
-import { CurrentManager } from '../../common/decorators';
+import { CurrentManager, CurrentUser } from '../../common/decorators';
 import { ProfileAccessGuard } from '../../guards/profile-access.guard';
 import { ProfileManager } from '../../database/entities';
 
@@ -29,8 +29,8 @@ export class ProfileManagersController {
   }
 
   @Get()
-  findAll(@Param('id') profileId: string) {
-    return this.service.findAll(profileId);
+  findAll(@Param('id') profileId: string, @CurrentUser('id') userId: string) {
+    return this.service.findAll(profileId, userId);
   }
 
   @Patch(':managerId')

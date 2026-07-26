@@ -2,10 +2,12 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfilePhoto, ProfileManager } from '../../database/entities';
+import { EntitlementsService } from '../subscriptions/entitlements.service';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto';
 
 @Injectable()
@@ -13,6 +15,7 @@ export class PhotosService {
   constructor(
     @InjectRepository(ProfilePhoto)
     private photoRepo: Repository<ProfilePhoto>,
+    private readonly entitlementsService: EntitlementsService,
   ) {}
 
   async create(
@@ -21,6 +24,16 @@ export class PhotosService {
     manager: ProfileManager,
   ) {
     this.assertOwnerOrParent(manager);
+
+    const limit = await this.entitlementsService.getPhotoLimit(profileId);
+    const count = await this.photoRepo.count({
+      where: { profile_id: profileId },
+    });
+    if (count >= limit) {
+      throw new BadRequestException(
+        `Photo limit reached (${limit}). Upgrade to premium for more photo slots.`,
+      );
+    }
 
     if (dto.is_primary) {
       await this.photoRepo.update(

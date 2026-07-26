@@ -22,6 +22,7 @@ import {
   AiInterpretDto,
   UpdateKundaliPreferencesDto,
 } from './dto';
+import { EntitlementsService } from '../subscriptions/entitlements.service';
 import { generateKundali, computeGunaMatch } from './kundali-engine';
 
 @Injectable()
@@ -41,6 +42,7 @@ export class KundaliService {
     private searchIndexRepo: Repository<ProfileSearchIndex>,
     @InjectRepository(Block)
     private blockRepo: Repository<Block>,
+    private readonly entitlementsService: EntitlementsService,
   ) {}
 
   async generate(dto: GenerateKundaliDto, userId: string) {
@@ -91,7 +93,12 @@ export class KundaliService {
     return kundali;
   }
 
-  async match(dto: MatchKundaliDto) {
+  async match(dto: MatchKundaliDto, userId: string) {
+    await this.assertPremiumMatching(userId, [
+      dto.profile1_id,
+      dto.profile2_id,
+    ]);
+
     const k1 = await this.kundaliRepo.findOne({
       where: { profile_id: dto.profile1_id },
     });
@@ -141,7 +148,9 @@ export class KundaliService {
     return gunaResult;
   }
 
-  async getMatchResults(profileId: string) {
+  async getMatchResults(profileId: string, userId: string) {
+    await this.assertPremiumMatching(userId, [profileId]);
+
     return this.gunaRepo.find({
       where: [{ profile1_id: profileId }, { profile2_id: profileId }],
       order: { guna_total_score: 'DESC' },
@@ -220,7 +229,12 @@ export class KundaliService {
     return this.prefsRepo.save(prefs);
   }
 
-  async searchByKundali(query: Record<string, string>) {
+  async searchByKundali(query: Record<string, string>, userId: string) {
+    if (!query.profile_id) {
+      throw new BadRequestException('profile_id is required');
+    }
+    await this.assertPremiumMatching(userId, [query.profile_id]);
+
     const qb = this.searchIndexRepo
       .createQueryBuilder('si')
       .innerJoinAndSelect('si.profile', 'profile')
@@ -308,6 +322,31 @@ export class KundaliService {
     );
 
     return { message: 'Kundali deleted' };
+  }
+
+  /**
+   * Kundali matching is a premium feature: the acting user must manage one of
+   * the profiles involved and that profile must have premium entitlements.
+   */
+  private async assertPremiumMatching(
+    userId: string,
+    profileIds: string[],
+  ): Promise<void> {
+    for (const profileId of profileIds) {
+      const manager = await this.managerRepo.findOne({
+        where: { user_id: userId, profile_id: profileId },
+      });
+      if (manager) {
+        await this.entitlementsService.assertPremium(
+          profileId,
+          'Kundali matching',
+        );
+        return;
+      }
+    }
+    throw new ForbiddenException(
+      'You are not a manager of any profile in this match',
+    );
   }
 
   private async assertOwnerOrParent(

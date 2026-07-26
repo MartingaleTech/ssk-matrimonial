@@ -11,9 +11,11 @@ import {
   ProfileSearchIndex,
   Block,
 } from '../../database/entities';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 @Module({
   imports: [
+    SubscriptionsModule,
     TypeOrmModule.forFeature([
       ProfileKundali,
       GunaMatchResults,
