@@ -33,13 +33,16 @@ export class KundaliController {
   }
 
   @Post('kundali/match')
-  match(@Body() dto: MatchKundaliDto) {
-    return this.kundaliService.match(dto);
+  match(@Body() dto: MatchKundaliDto, @CurrentUser('id') userId: string) {
+    return this.kundaliService.match(dto, userId);
   }
 
   @Get('kundali/match/:profileId')
-  getMatchResults(@Param('profileId') profileId: string) {
-    return this.kundaliService.getMatchResults(profileId);
+  getMatchResults(
+    @Param('profileId') profileId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.kundaliService.getMatchResults(profileId, userId);
   }
 
   @Get('kundali/summary/:profileId')
@@ -62,8 +65,11 @@ export class KundaliController {
   }
 
   @Get('search/kundali')
-  searchByKundali(@Query() query: Record<string, string>) {
-    return this.kundaliService.searchByKundali(query);
+  searchByKundali(
+    @Query() query: Record<string, string>,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.kundaliService.searchByKundali(query, userId);
   }
 
   @Post('kundali/upload')

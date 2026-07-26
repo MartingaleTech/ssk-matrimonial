@@ -1,9 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { databaseConfig, jwtConfig, twilioConfig } from './config';
+import {
+  databaseConfig,
+  jwtConfig,
+  paymentsConfig,
+  twilioConfig,
+} from './config';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { HttpThrottlerGuard } from './guards/http-throttler.guard';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
@@ -18,13 +25,17 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { KundaliModule } from './modules/kundali/kundali.module';
 import { VerificationModule } from './modules/verification/verification.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig, twilioConfig],
+      load: [databaseConfig, jwtConfig, twilioConfig, paymentsConfig],
     }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -34,6 +45,14 @@ import { AdminModule } from './modules/admin/admin.module';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.database'),
+        ssl: configService.get<boolean>('database.ssl')
+          ? {
+              rejectUnauthorized: configService.get<boolean>(
+                'database.sslRejectUnauthorized',
+              ),
+              ca: configService.get<string>('database.sslCa'),
+            }
+          : false,
         autoLoadEntities: true,
         synchronize: process.env.NODE_ENV !== 'production',
       }),
@@ -52,8 +71,15 @@ import { AdminModule } from './modules/admin/admin.module';
     KundaliModule,
     VerificationModule,
     AdminModule,
+    FavoritesModule,
+    SubscriptionsModule,
+    PaymentsModule,
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: HttpThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

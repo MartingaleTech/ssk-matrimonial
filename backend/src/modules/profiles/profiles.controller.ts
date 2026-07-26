@@ -38,8 +38,8 @@ export class ProfilesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.profilesService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.profilesService.findOne(id, userId);
   }
 
   @Patch(':id')

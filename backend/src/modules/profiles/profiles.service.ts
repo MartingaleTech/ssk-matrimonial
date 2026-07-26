@@ -108,7 +108,7 @@ export class ProfilesService {
     return { profile, manager };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, viewerUserId?: string) {
     const profile = await this.profileRepo.findOne({
       where: { id },
       relations: [
@@ -127,7 +127,55 @@ export class ProfilesService {
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
-    return profile;
+
+    if (!viewerUserId) {
+      return profile;
+    }
+
+    const isManager = await this.managerRepo.findOne({
+      where: { user_id: viewerUserId, profile_id: id },
+    });
+    return isManager ? profile : this.applyPrivacySettings(profile);
+  }
+
+  /** Hides the fields the profile owner chose not to share with other users. */
+  private applyPrivacySettings(profile: Profile): Record<string, unknown> {
+    const settings = profile.privacy_settings;
+    const masked: Record<string, unknown> = {
+      ...profile,
+      photos: (profile.photos ?? []).filter(
+        (photo) => photo.visibility === 'public',
+      ),
+    };
+    if (!settings) {
+      return masked;
+    }
+
+    if (!settings.show_full_name && profile.basic_details) {
+      masked.basic_details = { ...profile.basic_details, last_name: null };
+    }
+    if (!settings.show_work_details && profile.education_career) {
+      masked.education_career = {
+        ...profile.education_career,
+        company_name: null,
+        annual_income_range: null,
+        work_location_city: null,
+      };
+    }
+    if (!settings.show_location_city && profile.location) {
+      masked.location = {
+        ...profile.location,
+        city: null,
+        pincode: null,
+        latitude: null,
+        longitude: null,
+      };
+    }
+    if (!settings.show_kundali_public) {
+      masked.kundali = null;
+    }
+
+    return masked;
   }
 
   async update(id: string, dto: UpdateProfileDto, manager: ProfileManager) {

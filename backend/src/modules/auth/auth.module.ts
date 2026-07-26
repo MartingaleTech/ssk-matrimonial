@@ -16,8 +16,10 @@ import { User, UserSession, OtpCode } from '../../database/entities';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('jwt.secret') || 'default-secret',
-        signOptions: { expiresIn: 604800 },
+        secret: configService.getOrThrow<string>('jwt.secret'),
+        signOptions: {
+          expiresIn: configService.get<string>('jwt.expiresIn') || '7d',
+        },
       }),
       inject: [ConfigService],
     }),
