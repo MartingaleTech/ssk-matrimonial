@@ -63,14 +63,14 @@ Mobile: scan the QR code with Expo Go. Web: opens on `http://localhost:19006`.
 ssk-matrimonial/
   backend/                 # NestJS API server
     src/
-      modules/             # 13 feature modules
-      database/entities/   # 27 TypeORM entities
+      modules/             # 16 feature modules
+      database/entities/   # 32 TypeORM entities
       guards/              # JWT + role-based auth guards
       config/              # Database + JWT configuration
   frontend/                # React Native (Expo) mobile app
     src/
-      api/                 # 12 API modules (all through client.ts)
-      screens/             # 30 screens across 8 categories
+      api/                 # 15 API modules (all through client.ts)
+      screens/             # 35 screens across 10 categories
       navigation/          # Stack + Tab navigators
       context/             # AuthContext + ProfileContext
       components/          # Reusable UI components
@@ -91,8 +91,18 @@ ssk-matrimonial/
 | `DB_DATABASE` | `ssk_matrimonial` | Database name |
 | `JWT_SECRET` | `your-jwt-secret-change-in-production` | JWT signing secret |
 | `JWT_EXPIRES_IN` | `7d` | Token expiry duration |
-| `CORS_ORIGIN` | `*` | Allowed CORS origins |
+| `CORS_ORIGIN` | `*` | Comma-separated allowed origins. Must be explicit (never `*`) in production |
 | `PORT` | `3000` | Server port |
+| `DB_SSL` | `false` | Connect to PostgreSQL over TLS |
+| `DB_SSL_REJECT_UNAUTHORIZED` | `true` | Verify the PostgreSQL server certificate |
+| `DB_SSL_CA` | – | PEM CA bundle for the PostgreSQL server certificate |
+| `DATA_ENCRYPTION_KEY` | – | 32-byte key (`openssl rand -hex 32`) for AES-256-GCM field encryption. Required in production |
+| `STRIPE_SECRET_KEY` | – | Stripe secret key (US payments) |
+| `STRIPE_PUBLISHABLE_KEY` | – | Stripe publishable key returned to the app |
+| `STRIPE_WEBHOOK_SECRET` | – | Stripe webhook signing secret |
+| `RAZORPAY_KEY_ID` | – | Razorpay key id (India payments) |
+| `RAZORPAY_KEY_SECRET` | – | Razorpay key secret |
+| `RAZORPAY_WEBHOOK_SECRET` | – | Razorpay webhook signing secret |
 
 ### Frontend
 
@@ -137,6 +147,14 @@ npm run typecheck      # TypeScript check (tsc --noEmit)
 - **Privacy controls**: Granular visibility settings (name, work details, location, kundali)
 - **Block enforcement**: Blocked profiles excluded from search, matches, connections, and chat
 - **Profile creation flow**: 8-step guided flow (Basic Info -> Education -> Family -> Lifestyle -> Location -> Kundali -> Photos -> Preferences)
+- **Subscriptions**: Basic and Premium plans priced per country (₹499 / ₹999 in India, $4.99 / $9.99 in the US), billed monthly through Razorpay (UPI, netbanking, cards) or Stripe (cards, Apple Pay, ACH)
+- **Free trial**: The first 100 fully verified profiles get 6 months of Premium
+- **Premium entitlements**: 10 photos (5 on Basic), favorites, and Kundali matching
+- **Security**: Helmet, CORS allowlist, strict validation, rate limiting, AES-256-GCM field encryption for sensitive PII and provider identifiers, and masked responses for non-owners
+
+> iOS note: digital subscriptions in an iOS App Store build must use Apple
+> StoreKit / In-App Purchase. The Stripe Apple Pay flow covers Android and web;
+> a StoreKit flow is still an open product decision.
 
 ## License
 

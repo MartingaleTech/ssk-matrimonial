@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Button, StepNavigation } from '../../components';
 import { photosApi } from '../../api/photos';
 import { useProfile } from '../../context';
+import { useEntitlements } from '../../hooks';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 
 interface PhotoUploadScreenProps {
@@ -12,8 +13,20 @@ interface PhotoUploadScreenProps {
 
 export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
   const { profile } = useProfile();
+  const { entitlements } = useEntitlements();
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+
+  const maxPhotos = entitlements.photo_limit;
+  const slots = Array.from({ length: maxPhotos }, (_, index) => index);
+
+  const promptUpgrade = () => {
+    Alert.alert(
+      'Photo limit reached',
+      `Basic profiles can have ${maxPhotos} photos. Upgrade to Premium from Settings for 10 photo slots.`,
+      [{ text: 'OK' }],
+    );
+  };
 
   const requestPermissions = async (): Promise<boolean> => {
     if (Platform.OS === 'web') return true;
@@ -31,6 +44,11 @@ export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
   };
 
   const handleAddPhoto = async () => {
+    if (photos.length >= maxPhotos) {
+      if (entitlements.plan === 'basic') promptUpgrade();
+      return;
+    }
+
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
 
@@ -57,6 +75,7 @@ export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
         });
       } catch {
         Alert.alert('Upload Error', 'Photo saved locally but failed to sync to server.');
+        setPhotos((prev) => prev.filter((uri) => uri !== imageUri));
       } finally {
         setUploading(false);
       }
@@ -76,15 +95,17 @@ export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
       <StepNavigation screenName="ProfilePhotos" navigation={navigation} />
 
       <Text style={styles.title}>Upload Photos</Text>
-      <Text style={styles.hint}>Add up to 6 photos. First photo will be your primary photo.</Text>
+      <Text style={styles.hint}>
+        Add up to {maxPhotos} photos. First photo will be your primary photo.
+      </Text>
 
       <View style={styles.grid}>
-        {[0, 1, 2, 3, 4, 5].map((index) => (
+        {slots.map((index) => (
           <TouchableOpacity
             key={index}
             style={styles.photoSlot}
             onPress={photos[index] ? () => handleRemovePhoto(index) : handleAddPhoto}
-            disabled={uploading || (!photos[index] && photos.length >= 6)}
+            disabled={uploading || (!photos[index] && photos.length >= maxPhotos)}
           >
             {photos[index] ? (
               <View style={styles.photoWrapper}>

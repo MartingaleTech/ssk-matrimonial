@@ -45,6 +45,13 @@
           "photosPermission": "SSK Matrimonial needs access to your photo library to upload profile photos.",
           "cameraPermission": "SSK Matrimonial needs access to your camera to take profile photos."
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.ssk.matrimonial",
+          "enableGooglePay": false
+        }
       ]
     ]
   }

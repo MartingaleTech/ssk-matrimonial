@@ -23,6 +23,11 @@ import { GunaBreakdownScreen } from '../screens/kundali/GunaBreakdownScreen';
 import { KundaliPreferencesScreen } from '../screens/kundali/KundaliPreferencesScreen';
 import { KundaliCompatibleMatchesScreen } from '../screens/kundali/KundaliCompatibleMatchesScreen';
 import { VerificationScreen } from '../screens/profile-creation/VerificationScreen';
+import { MyProfileScreen } from '../screens/settings/MyProfileScreen';
+import { FavoritesScreen } from '../screens/favorites/FavoritesScreen';
+import { PlansScreen } from '../screens/subscription/PlansScreen';
+import { CheckoutScreen } from '../screens/subscription/CheckoutScreen';
+import { ManageSubscriptionScreen } from '../screens/subscription/ManageSubscriptionScreen';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -62,6 +67,11 @@ export function AppNavigator() {
           <Stack.Screen name="GunaBreakdown" component={GunaBreakdownScreen} options={{ title: 'Guna Match' }} />
           <Stack.Screen name="KundaliPreferences" component={KundaliPreferencesScreen} options={{ title: 'Kundali Preferences' }} />
           <Stack.Screen name="KundaliMatches" component={KundaliCompatibleMatchesScreen} options={{ title: 'Compatible Matches' }} />
+          <Stack.Screen name="MyProfile" component={MyProfileScreen} options={{ title: 'My Profile' }} />
+          <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ title: 'Favorites' }} />
+          <Stack.Screen name="Plans" component={PlansScreen} options={{ title: 'Plans' }} />
+          <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
+          <Stack.Screen name="ManageSubscription" component={ManageSubscriptionScreen} options={{ title: 'Subscription' }} />
         </Stack.Navigator>
       )}
     </NavigationContainer>

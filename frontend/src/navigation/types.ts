@@ -16,6 +16,16 @@ export type RootStackParamList = {
   GunaBreakdown: { matchId?: string; profile2Id?: string } | undefined;
   KundaliPreferences: undefined;
   KundaliMatches: undefined;
+  MyProfile: undefined;
+  Favorites: undefined;
+  Plans: undefined;
+  Checkout: {
+    planCode: 'basic' | 'premium';
+    planName: string;
+    amount: number;
+    currency: string;
+  };
+  ManageSubscription: undefined;
 };
 
 export type AuthStackParamList = {

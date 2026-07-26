@@ -6,7 +6,7 @@ React Native (Expo) mobile app for SSK Matrimony.
 
 ```
 src/
-  api/                    # 12 API modules, all through client.ts
+  api/                    # 15 API modules, all through client.ts
     client.ts             # Axios instance with JWT interceptor + 401 handling
     auth.ts               # register, login, sendOtp, verifyOtp, logout
     profiles.ts           # CRUD + sub-entity updates (basic, education, family, etc.)
@@ -20,6 +20,11 @@ src/
     kundali.ts            # Generate, match, summary, preferences, search, upload
     notifications.ts      # List, mark read
     verification.ts       # Email, phone, document verification
+    favorites.ts          # Premium favorites list/add/remove
+    subscriptions.ts      # Plans, current subscription + entitlements, checkout, cancel
+    payments.ts           # Stripe / Razorpay SDK payment confirmation
+  hooks/
+    useEntitlements.ts     # Current plan entitlements (photo limit, favorites, kundali)
   context/
     AuthContext.tsx        # JWT token + user state, persisted to AsyncStorage
     ProfileContext.tsx     # Active profile + manager state, persisted to AsyncStorage
@@ -29,8 +34,8 @@ src/
     ProfileCreationStack.tsx  # 8-step profile creation flow
     MainTabs.tsx           # Bottom tab navigator (Discovery, Connections, Chat, Settings)
     types.ts               # TypeScript param lists for all navigators
-  screens/                 # 30 screens across 8 categories
-  components/              # 5 reusable components
+  screens/                 # 35 screens across 10 categories
+  components/              # 6 reusable components
   theme/                   # Design tokens (colors, spacing, typography)
   utils/
     storage.ts             # AsyncStorage helpers (token, user, clearStorage)
@@ -129,6 +134,11 @@ This sets `hasCompletedProfile` to true, triggering AppNavigator to switch to Ma
 | GunaBreakdownScreen | `GunaBreakdown` | KundaliSummaryScreen |
 | KundaliPreferencesScreen | `KundaliPreferences` | KundaliSummaryScreen |
 | KundaliCompatibleMatchesScreen | `KundaliMatches` | KundaliSummaryScreen |
+| MyProfileScreen | `MyProfile` | AccountSettingsScreen |
+| FavoritesScreen | `Favorites` | AccountSettingsScreen |
+| PlansScreen | `Plans` | AccountSettingsScreen, upgrade prompts |
+| CheckoutScreen | `Checkout` | PlansScreen |
+| ManageSubscriptionScreen | `ManageSubscription` | AccountSettingsScreen, CheckoutScreen |
 
 ## State Management
 
@@ -238,7 +248,7 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/a
 | `caption` | 12 | 400 | Labels, timestamps |
 | `button` | 16 | 600 | Button text |
 
-## Screen Inventory (30 screens)
+## Screen Inventory (35 screens)
 
 ### Auth (4)
 - `WelcomeScreen` - SSK Matrimony branding + Login/Register CTAs
@@ -276,8 +286,9 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/a
 - `ManagerListScreen` - List managers with role badges, remove option
 - `AddManagerScreen` - Add new manager by email with role selection
 
-### Settings (3)
-- `AccountSettingsScreen` - Hub linking to privacy, notifications, managers, kundali, logout
+### Settings (4)
+- `AccountSettingsScreen` - Hub linking to plan, my profile, favorites, privacy, notifications, managers, kundali, logout
+- `MyProfileScreen` - Own profile with photo gallery and plan photo usage
 - `PrivacySettingsScreen` - Toggle visibility settings
 - `NotificationSettingsScreen` - Toggle notification channels and categories
 
@@ -285,7 +296,15 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/a
 - `KundaliSummaryScreen` - Full kundali display with planetary positions
 - `GunaBreakdownScreen` - 36-point Ashta-Koota score breakdown
 - `KundaliPreferencesScreen` - Match requirements (min score, preferred rashi/nakshatra)
-- `KundaliCompatibleMatchesScreen` - Profiles matching kundali criteria
+- `KundaliCompatibleMatchesScreen` - Profiles matching kundali criteria (premium; shows an upgrade prompt on Basic)
+
+### Favorites (1)
+- `FavoritesScreen` - Premium favorites list (upgrade prompt on Basic)
+
+### Subscription (3)
+- `PlansScreen` - Basic/Premium pricing in the profile's currency (INR or USD)
+- `CheckoutScreen` - Starts checkout and confirms payment via Stripe (US) or Razorpay (India)
+- `ManageSubscriptionScreen` - Status, renewal date, entitlements, cancel/upgrade
 
 ## Development
 
