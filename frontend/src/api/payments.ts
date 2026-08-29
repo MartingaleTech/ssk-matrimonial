@@ -27,6 +27,7 @@ type RazorpaySdk = {
 
 function getStripeSdk(): StripeSdk | null {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const sdk = require('@stripe/stripe-react-native');
     return sdk as StripeSdk;
   } catch {
@@ -36,6 +37,7 @@ function getStripeSdk(): StripeSdk | null {
 
 function getRazorpaySdk(): RazorpaySdk | null {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const sdk = require('react-native-razorpay');
     return (sdk?.default ?? sdk) as RazorpaySdk;
   } catch {
