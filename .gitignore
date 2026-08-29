@@ -2,3 +2,8 @@ node_modules/
 dist/
 .env
 *.js.map
+
+# Expo prebuild output (regenerate with `npx expo prebuild`)
+frontend/.expo/
+frontend/android/
+frontend/ios/

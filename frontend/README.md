@@ -74,8 +74,8 @@ Stripe native sheets then open in-app instead of falling back to the browser.
 
 ```bash
 npm run start      # expo start
-npm run android    # expo start --android
-npm run ios        # expo start --ios
+npm run android    # expo run:android (builds + installs the dev build)
+npm run ios        # expo run:ios (builds + installs the dev build)
 npm run web        # expo start --web
 npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
