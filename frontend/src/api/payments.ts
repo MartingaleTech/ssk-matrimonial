@@ -1,7 +1,47 @@
 import { Linking } from 'react-native';
-import RazorpayCheckout from 'react-native-razorpay';
-import { initStripe, initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
 import { CheckoutResponse, RazorpayCheckout as RazorpayParams, StripeCheckout } from './subscriptions';
+
+type StripeSdk = {
+  initStripe: (options: { publishableKey: string; merchantIdentifier?: string }) => Promise<void>;
+  initPaymentSheet: (options: {
+    merchantDisplayName: string;
+    paymentIntentClientSecret: string;
+    customerId?: string;
+    applePay?: { merchantCountryCode: string };
+    allowsDelayedPaymentMethods?: boolean;
+  }) => Promise<{ error?: { message: string } }>;
+  presentPaymentSheet: () => Promise<{ error?: { code?: string; message: string } }>;
+};
+
+type RazorpaySdk = {
+  open: (options: {
+    key: string;
+    name: string;
+    description: string;
+    subscription_id?: string;
+    currency: string;
+    amount: number;
+    theme: { color: string };
+  }) => Promise<{ razorpay_payment_id?: string }>;
+};
+
+function getStripeSdk(): StripeSdk | null {
+  try {
+    const sdk = require('@stripe/stripe-react-native');
+    return sdk as StripeSdk;
+  } catch {
+    return null;
+  }
+}
+
+function getRazorpaySdk(): RazorpaySdk | null {
+  try {
+    const sdk = require('react-native-razorpay');
+    return (sdk?.default ?? sdk) as RazorpaySdk;
+  } catch {
+    return null;
+  }
+}
 
 export interface PaymentOutcome {
   status: 'completed' | 'cancelled' | 'failed';
@@ -32,12 +72,24 @@ async function payWithStripe(
     return { status: 'failed', message: 'Stripe is not configured' };
   }
 
-  await initStripe({
+  const StripeSdk = getStripeSdk();
+  if (!StripeSdk) {
+    if ('checkout_url' in params && params.checkout_url && (await Linking.canOpenURL(params.checkout_url))) {
+      await Linking.openURL(params.checkout_url);
+      return { status: 'cancelled', message: 'Complete the payment in your browser' };
+    }
+    return {
+      status: 'failed',
+      message: 'Stripe is not available in this environment. Please continue in the browser.',
+    };
+  }
+
+  await StripeSdk.initStripe({
     publishableKey: params.publishable_key,
     merchantIdentifier: 'merchant.com.ssk.matrimonial',
   });
 
-  const init = await initPaymentSheet({
+  const init = await StripeSdk.initPaymentSheet({
     merchantDisplayName: 'SSK Matrimonial',
     paymentIntentClientSecret: params.client_secret,
     customerId: params.customer_id ?? undefined,
@@ -48,7 +100,7 @@ async function payWithStripe(
     return { status: 'failed', message: init.error.message };
   }
 
-  const result = await presentPaymentSheet();
+  const result = await StripeSdk.presentPaymentSheet();
   if (result.error) {
     return {
       status: result.error.code === 'Canceled' ? 'cancelled' : 'failed',
@@ -64,6 +116,19 @@ async function payWithRazorpay(
 ): Promise<PaymentOutcome> {
   if (!params.key_id) {
     return { status: 'failed', message: 'Razorpay is not configured' };
+  }
+
+  const RazorpayCheckout = getRazorpaySdk();
+
+  if (!RazorpayCheckout) {
+    if (params.short_url && (await Linking.canOpenURL(params.short_url))) {
+      await Linking.openURL(params.short_url);
+      return { status: 'cancelled', message: 'Complete the payment in your browser' };
+    }
+    return {
+      status: 'failed',
+      message: 'Razorpay is not available in this environment. Please continue in the browser.',
+    };
   }
 
   try {

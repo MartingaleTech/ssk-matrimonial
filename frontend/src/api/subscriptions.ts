@@ -56,6 +56,7 @@ export interface StripeCheckout {
   customer_id: string | null;
   subscription_id: string;
   client_secret: string | null;
+  checkout_url?: string | null;
 }
 
 export interface RazorpayCheckout {
