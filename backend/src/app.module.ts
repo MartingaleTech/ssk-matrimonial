@@ -62,7 +62,9 @@ import { StorageModule } from './modules/storage/storage.module';
             }
           : false,
         autoLoadEntities: true,
-        synchronize: process.env.NODE_ENV !== 'production',
+        synchronize: false,
+        migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
+        migrationsRun: process.env.DB_RUN_MIGRATIONS !== 'false',
       }),
       inject: [ConfigService],
     }),

@@ -369,13 +369,29 @@ the key requires re-encrypting existing rows.
 4. Field-level encryption above protects sensitive columns even if a dump
    leaks; keep `DATA_ENCRYPTION_KEY` in a secret manager, never in the repo.
 
-### Production migrations
+### Migrations
 
-`synchronize` is enabled only outside production, so new entities auto-create
-tables in development. Production deployments must run TypeORM migrations
-(`synchronize: false`) — including the change of `verifications.metadata` from
-`jsonb` to encrypted text and the encrypted `users.phone` column, which require
-a data backfill for existing rows.
+`synchronize` is disabled in every environment; the schema is owned by the
+migrations in `src/database/migrations/`. `1790394000000-InitialSchema` is the
+baseline for all 32 entities (it already creates `verifications.metadata` as
+encrypted `text` and `users.phone` as the encrypted `varchar(255)` column, so a
+fresh database needs no backfill).
+
+- On boot the app runs pending migrations (`migrationsRun`), unless
+  `DB_RUN_MIGRATIONS=false`. `npm run start:prod` also runs
+  `migration:run:prod` (against `dist/`) before starting, so a deploy step
+  can apply migrations explicitly and set `DB_RUN_MIGRATIONS=false` when
+  running several replicas.
+- Local development: `npm run migration:run` (ts-node, `src/`).
+- Schema change: edit the entity, then
+  `npm run migration:generate -- src/database/migrations/<Name>` and commit
+  the generated file. CI should fail if `migration:generate` finds drift.
+- Databases that were previously created by `synchronize` already have all
+  tables. Mark the baseline as applied without executing it:
+  `npm run typeorm -- migration:run --fake`.
+- Rows written to `verifications.metadata` / `users.phone` before the
+  encryption transformers were introduced are plaintext and must be re-saved
+  through the entities (a one-off script) before the app can read them.
 
 ## Permission Model
 
@@ -435,7 +451,7 @@ AppModule (root)
 1. Create entity in `database/entities/<name>.entity.ts` with TypeORM decorators
 2. Export from `database/entities/index.ts`
 3. Import entity in the relevant module's `TypeOrmModule.forFeature([...])`
-4. TypeORM `synchronize: true` auto-creates the table in development
+4. Run `npm run migration:generate -- src/database/migrations/<Name>` and commit the migration
 
 ### Error handling
 
