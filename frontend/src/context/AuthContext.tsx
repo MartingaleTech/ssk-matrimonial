@@ -16,6 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -67,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await handleAuthResponse(data);
   };
 
+  const resetPassword = async (email: string, code: string, newPassword: string) => {
+    const { data } = await authApi.resetPassword({ email, code, new_password: newPassword });
+    await handleAuthResponse(data);
+  };
+
   const logout = async () => {
     try {
       await authApi.logout();
@@ -87,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!token,
         login,
         register,
+        resetPassword,
         logout,
       }}
     >

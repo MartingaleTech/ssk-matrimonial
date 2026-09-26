@@ -129,8 +129,12 @@ All endpoints are prefixed with `/api`. Authentication is required unless marked
 | POST | `/auth/register` | Public | Register with email + password. Returns user + JWT |
 | POST | `/auth/login` | Public | Login with email + password. Returns user + JWT |
 | POST | `/auth/send-otp` | Public | Send OTP to email or phone |
-| POST | `/auth/verify-otp` | Public | Verify OTP code |
-| POST | `/auth/logout` | JWT | Logout (invalidate session) |
+| POST | `/auth/verify-otp` | Public | Verify OTP code (passwordless login; returns JWT) |
+| POST | `/auth/forgot-password` | Public | Send a password-reset OTP to a registered email/phone (always 200) |
+| POST | `/auth/reset-password` | Public | `{ email\|phone, code, new_password }` — sets a new password, revokes all sessions, returns a fresh JWT |
+| POST | `/auth/logout` | JWT | Revoke the current session (`{ "all": true }` revokes every session) |
+
+Every JWT carries a `sid` claim bound to a `user_sessions` row. `JwtStrategy` rejects tokens whose session is missing or expired, so logout, password reset and account deactivation take effect immediately.
 
 **Register request:**
 ```json

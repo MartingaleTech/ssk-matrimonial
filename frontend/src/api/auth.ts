@@ -30,5 +30,15 @@ export const authApi = {
   verifyOtp: (data: { email?: string; phone?: string; code: string }) =>
     client.post('/auth/verify-otp', data),
 
-  logout: () => client.post('/auth/logout'),
+  forgotPassword: (data: { email?: string; phone?: string }) =>
+    client.post('/auth/forgot-password', data),
+
+  resetPassword: (data: {
+    email?: string;
+    phone?: string;
+    code: string;
+    new_password: string;
+  }) => client.post<AuthResponse>('/auth/reset-password', data),
+
+  logout: (all = false) => client.post('/auth/logout', { all }),
 };
