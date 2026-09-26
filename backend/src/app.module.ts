@@ -7,6 +7,7 @@ import {
   databaseConfig,
   jwtConfig,
   paymentsConfig,
+  storageConfig,
   twilioConfig,
 } from './config';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -28,12 +29,19 @@ import { AdminModule } from './modules/admin/admin.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { StorageModule } from './modules/storage/storage.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig, twilioConfig, paymentsConfig],
+      load: [
+        databaseConfig,
+        jwtConfig,
+        twilioConfig,
+        paymentsConfig,
+        storageConfig,
+      ],
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     TypeOrmModule.forRootAsync({
@@ -74,6 +82,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     FavoritesModule,
     SubscriptionsModule,
     PaymentsModule,
+    StorageModule,
   ],
   providers: [
     {
