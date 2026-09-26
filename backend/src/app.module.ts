@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { LoggerModule } from 'nestjs-pino';
+import { buildLoggerParams } from './common/logging/logger.config';
 import {
   databaseConfig,
   jwtConfig,
@@ -30,6 +32,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -43,6 +46,7 @@ import { StorageModule } from './modules/storage/storage.module';
         storageConfig,
       ],
     }),
+    LoggerModule.forRoot(buildLoggerParams()),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -85,6 +89,7 @@ import { StorageModule } from './modules/storage/storage.module';
     SubscriptionsModule,
     PaymentsModule,
     StorageModule,
+    HealthModule,
   ],
   providers: [
     {
