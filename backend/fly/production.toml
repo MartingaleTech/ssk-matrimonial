@@ -1,0 +1,47 @@
+# Fly.io app definition for the PRODUCTION API.
+# Deployed by .github/workflows/deploy.yml when a v* tag is pushed, after the
+# same image has passed staging.
+#   flyctl deploy backend --config backend/fly/production.toml   (backend/ is the Docker build context; backend/Dockerfile is used)
+app = "ssk-matrimonial-api"
+primary_region = "bom"
+
+[deploy]
+  release_command = "npm run migration:run:prod"
+  strategy = "rolling"
+  max_unavailable = 0.33
+
+[processes]
+  app = "node dist/main"
+
+[env]
+  NODE_ENV = "production"
+  APP_ENV = "production"
+  PORT = "3000"
+  LOG_LEVEL = "info"
+  DB_SSL = "false"
+  DB_RUN_MIGRATIONS = "false"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 2
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "15s"
+    timeout = "5s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "1gb"
+  processes = ["app"]

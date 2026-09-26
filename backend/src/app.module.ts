@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { buildLoggerParams } from './common/logging/logger.config';
+import type { DatabaseConnection } from './config/database.config';
 import {
   databaseConfig,
   jwtConfig,
@@ -52,19 +53,7 @@ import { HealthModule } from './modules/health/health.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('database.host'),
-        port: configService.get<number>('database.port'),
-        username: configService.get<string>('database.username'),
-        password: configService.get<string>('database.password'),
-        database: configService.get<string>('database.database'),
-        ssl: configService.get<boolean>('database.ssl')
-          ? {
-              rejectUnauthorized: configService.get<boolean>(
-                'database.sslRejectUnauthorized',
-              ),
-              ca: configService.get<string>('database.sslCa'),
-            }
-          : false,
+        ...configService.get<DatabaseConnection>('database'),
         autoLoadEntities: true,
         synchronize: false,
         migrations: [__dirname + '/database/migrations/*{.ts,.js}'],

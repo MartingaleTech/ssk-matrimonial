@@ -1,0 +1,81 @@
+name: Deploy
+
+# staging:    every push to init-branch/main (after CI on that commit is green)
+# production: push a tag `vX.Y.Z` (the tag must point at a commit already on staging)
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [init-branch, main]
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [staging, production]
+        required: true
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || (startsWith(github.ref, 'refs/tags/') && 'production' || 'staging') }}
+  cancel-in-progress: false
+
+jobs:
+  staging:
+    name: Deploy staging
+    if: >-
+      (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://ssk-matrimonial-api-staging.fly.dev/api/health
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy (runs migrations in release_command first)
+        run: >-
+          flyctl deploy backend --remote-only --config backend/fly/staging.toml
+          --image-label ${{ github.event.workflow_run.head_sha || github.sha }}
+          --env APP_VERSION=${{ github.event.workflow_run.head_sha || github.sha }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_STAGING }}
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 12); do
+            if curl -fsS https://ssk-matrimonial-api-staging.fly.dev/api/health; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::staging never became healthy"; exit 1
+
+  production:
+    name: Deploy production
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    runs-on: ubuntu-latest
+    # Configure required reviewers on this environment in GitHub settings to
+    # get a manual approval gate before production rollouts.
+    environment:
+      name: production
+      url: https://ssk-matrimonial-api.fly.dev/api/health
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy (runs migrations in release_command first)
+        run: >-
+          flyctl deploy backend --remote-only --config backend/fly/production.toml
+          --image-label ${{ github.ref_name }}
+          --env APP_VERSION=${{ github.ref_name }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PRODUCTION }}
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 12); do
+            if curl -fsS https://ssk-matrimonial-api.fly.dev/api/health; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::production never became healthy"; exit 1
