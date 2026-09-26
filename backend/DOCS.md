@@ -294,8 +294,9 @@ Match quality: `excellent` (>= 28), `very_good` (>= 21), `good` (>= 18), `averag
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/verification/email` | JWT | Request email verification |
-| POST | `/verification/phone` | JWT | Request phone verification |
+| POST | `/verification/send-otp` | JWT | Send a Twilio Verify OTP to the account's registered email or phone (`{ profile_id, channel }`) |
+| POST | `/verification/email` | JWT | Confirm the email OTP (`{ profile_id, code }`) and mark the profile email-verified |
+| POST | `/verification/phone` | JWT | Confirm the phone OTP (`{ profile_id, code }`) and mark the profile phone-verified |
 | POST | `/verification/document` | JWT | Submit document for verification |
 | GET | `/verification/status` | JWT | Get verification status |
 
