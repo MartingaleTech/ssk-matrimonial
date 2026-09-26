@@ -70,9 +70,9 @@ jobs:
             exit 1
           fi
       - name: Unit tests
-        run: npm test -- --ci --passWithNoTests
+        run: npm test -- --ci
       - name: E2E tests
-        run: npm run test:e2e -- --ci --runInBand --passWithNoTests
+        run: npm run test:e2e -- --ci --runInBand
 
   frontend:
     name: Frontend (lint, typecheck)
