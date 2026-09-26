@@ -2,3 +2,4 @@ export { default as databaseConfig } from './database.config';
 export { default as jwtConfig } from './jwt.config';
 export { default as twilioConfig } from './twilio.config';
 export { default as paymentsConfig } from './payments.config';
+export { default as storageConfig } from './storage.config';

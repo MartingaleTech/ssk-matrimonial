@@ -19,6 +19,9 @@ export class ProfilePhoto {
   @Column({ type: 'varchar', length: 1000 })
   url: string;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  storage_key: string | null;
+
   @Column({ type: 'boolean', default: false })
   is_primary: boolean;
 

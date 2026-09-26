@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PhotosService } from './photos.service';
-import { CreatePhotoDto, UpdatePhotoDto } from './dto';
+import { CreatePhotoDto, UpdatePhotoDto, PresignPhotoDto } from './dto';
 import { CurrentManager } from '../../common/decorators';
 import { ProfileAccessGuard } from '../../guards/profile-access.guard';
 import { ProfileManager } from '../../database/entities';
@@ -26,6 +26,15 @@ export class PhotosController {
     @CurrentManager() manager: ProfileManager,
   ) {
     return this.photosService.create(profileId, dto, manager);
+  }
+
+  @Post('presign')
+  presign(
+    @Param('id') profileId: string,
+    @Body() dto: PresignPhotoDto,
+    @CurrentManager() manager: ProfileManager,
+  ) {
+    return this.photosService.presign(profileId, dto, manager);
   }
 
   @Get()

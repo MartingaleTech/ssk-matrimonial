@@ -7,6 +7,54 @@ import { useProfile } from '../../context';
 import { useEntitlements } from '../../hooks';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 
+const MIME_BY_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+};
+
+const ALLOWED_MIME_TYPES = new Set(Object.values(MIME_BY_EXTENSION));
+
+function resolveContentType(asset: ImagePicker.ImagePickerAsset): string {
+  if (asset.mimeType && ALLOWED_MIME_TYPES.has(asset.mimeType)) return asset.mimeType;
+  const ext = asset.uri.split('?')[0].split('.').pop()?.toLowerCase() ?? '';
+  return MIME_BY_EXTENSION[ext] ?? 'image/jpeg';
+}
+
+async function uploadToStorage(
+  profileId: string,
+  asset: ImagePicker.ImagePickerAsset,
+  isPrimary: boolean,
+) {
+  const contentType = resolveContentType(asset);
+  const visibility = 'public';
+
+  const { data: presigned } = await photosApi.presign(profileId, {
+    content_type: contentType,
+    visibility,
+  });
+
+  const fileResponse = await fetch(asset.uri);
+  const blob = await fileResponse.blob();
+
+  const putResponse = await fetch(presigned.upload_url, {
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
+    body: blob,
+  });
+  if (!putResponse.ok) {
+    throw new Error(`Storage upload failed with status ${putResponse.status}`);
+  }
+
+  return photosApi.upload(profileId, {
+    url: presigned.public_url,
+    storage_key: presigned.storage_key,
+    is_primary: isPrimary,
+    visibility,
+  });
+}
+
 interface PhotoUploadScreenProps {
   navigation: { navigate: (screen: string) => void; goBack: () => void };
 }
@@ -61,20 +109,17 @@ export function PhotoUploadScreen({ navigation }: PhotoUploadScreenProps) {
 
     if (result.canceled || !result.assets || result.assets.length === 0) return;
 
-    const imageUri = result.assets[0].uri;
+    const asset = result.assets[0];
+    const imageUri = asset.uri;
     setPhotos((prev) => [...prev, imageUri]);
 
     if (profile) {
       setUploading(true);
       try {
         const isPrimary = photos.length === 0;
-        await photosApi.upload(profile.id, {
-          url: imageUri,
-          is_primary: isPrimary,
-          visibility: 'public',
-        });
+        await uploadToStorage(profile.id, asset, isPrimary);
       } catch {
-        Alert.alert('Upload Error', 'Photo saved locally but failed to sync to server.');
+        Alert.alert('Upload Error', 'Failed to upload photo. Please try again.');
         setPhotos((prev) => prev.filter((uri) => uri !== imageUri));
       } finally {
         setUploading(false);
