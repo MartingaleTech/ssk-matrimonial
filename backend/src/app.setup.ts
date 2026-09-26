@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import { Logger } from 'nestjs-pino';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -22,6 +23,7 @@ export function resolveCorsOrigin(): string[] | boolean {
 
 /** Middleware, CORS, validation and prefix shared by `main.ts` and the e2e tests. */
 export function configureApp(app: INestApplication): INestApplication {
+  app.useLogger(app.get(Logger));
   app.use(helmet());
 
   app.enableCors({

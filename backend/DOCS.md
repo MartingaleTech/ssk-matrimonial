@@ -463,3 +463,39 @@ AppModule (root)
 - Auth errors: JWT guard returns 401
 - Not found: Services throw `NotFoundException` (404)
 - Forbidden: Role guard or service logic throws `ForbiddenException` (403)
+
+## Operations
+
+### Running with Docker
+
+`backend/Dockerfile` is a multi-stage build (`node:20-alpine`, non-root `node`
+user, `tini` as PID 1). The container runs `npm run start:prod`, which applies
+pending migrations and then starts the API. From the repository root:
+
+```bash
+docker compose up --build          # Postgres 16 + API on http://localhost:3000
+docker compose exec api npm run seed
+```
+
+### Health checks
+
+| Route              | Purpose                                                    |
+| ------------------ | ---------------------------------------------------------- |
+| `GET /api/health/live` | Liveness — process is up, no dependencies touched      |
+| `GET /api/health`      | Readiness — pings Postgres, `503` when the DB is down  |
+
+Both are public and exempt from rate limiting; requests to them are not logged.
+Point load-balancer / orchestrator readiness probes at `/api/health`.
+
+### Logging
+
+Logs are emitted by `pino` through `nestjs-pino`. In production every line is a
+JSON object on stdout — ship stdout to your aggregator, no sidecar needed.
+
+- `LOG_LEVEL` (`info` in production, `debug` otherwise)
+- `LOG_FORMAT=json` forces JSON locally (default is pretty-printed in dev)
+- Every request gets an `x-request-id` (incoming header is honoured, otherwise
+  generated) that is echoed in the response and attached to every log line for
+  that request; `userId` is added once the JWT guard has run.
+- `authorization`, `cookie`, `stripe-signature` and `x-razorpay-signature`
+  headers are redacted.

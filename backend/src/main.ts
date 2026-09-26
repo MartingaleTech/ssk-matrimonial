@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { configureApp } from './app.setup';
 
@@ -10,11 +11,15 @@ async function bootstrap() {
   }
 
   // Payment webhook signatures are verified against the exact request bytes.
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+    bufferLogs: true,
+  });
   configureApp(app);
+  app.enableShutdownHooks();
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`SSK Matrimonial API running on port ${port}`);
+  const port = Number(process.env.PORT) || 3000;
+  await app.listen(port, '0.0.0.0');
+  app.get(Logger).log(`SSK Matrimonial API listening on port ${port}`);
 }
 bootstrap();
