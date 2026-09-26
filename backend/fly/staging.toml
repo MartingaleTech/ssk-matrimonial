@@ -1,0 +1,50 @@
+# Fly.io app definition for the STAGING API.
+# Deployed by .github/workflows/deploy.yml on every push to init-branch/main.
+#   flyctl deploy backend --config backend/fly/staging.toml   (backend/ is the Docker build context; backend/Dockerfile is used)
+app = "ssk-matrimonial-api-staging"
+primary_region = "bom"
+
+[deploy]
+  # Runs in a one-off machine against the new image *before* any app machine
+  # is replaced. A failed migration aborts the deploy and leaves the old
+  # release serving traffic.
+  release_command = "npm run migration:run:prod"
+  strategy = "rolling"
+
+[processes]
+  # start:prod would re-run migrations on every machine boot; the release
+  # command above already did that once per deploy.
+  app = "node dist/main"
+
+[env]
+  NODE_ENV = "production"
+  APP_ENV = "staging"
+  PORT = "3000"
+  LOG_LEVEL = "debug"
+  DB_SSL = "false"          # Fly Postgres is reached over the private 6PN network
+  DB_RUN_MIGRATIONS = "false"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "15s"
+    timeout = "5s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  processes = ["app"]
