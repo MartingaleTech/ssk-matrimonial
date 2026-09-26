@@ -1,2 +1,2 @@
 export { VerifyDocumentDto } from './verify-document.dto';
-export { VerifyContactDto } from './verify-contact.dto';
+export { VerifyContactDto, RequestContactOtpDto } from './verify-contact.dto';

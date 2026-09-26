@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { Button, Input, Card, StepNavigation, ScreenContainer } from '../../components';
-import { authApi } from '../../api/auth';
 import { verificationApi } from '../../api/verification';
 import { profilesApi } from '../../api/profiles';
 import { useAuth, useProfile } from '../../context';
@@ -17,24 +16,24 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
 
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailCode, setEmailCode] = useState('');
-  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(!!profile?.email_verified);
   const [emailLoading, setEmailLoading] = useState(false);
 
   const [phoneOtpSent, setPhoneOtpSent] = useState(false);
   const [phoneCode, setPhoneCode] = useState('');
-  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(!!profile?.phone_verified);
   const [phoneLoading, setPhoneLoading] = useState(false);
 
   const [completing, setCompleting] = useState(false);
 
   const handleSendEmailOtp = async () => {
-    if (!user?.email) {
+    if (!user?.email || !profile) {
       Alert.alert('Error', 'No email address found on your account.');
       return;
     }
     setEmailLoading(true);
     try {
-      await authApi.sendOtp({ email: user.email, channel: 'email' });
+      await verificationApi.sendOtp({ profile_id: profile.id, channel: 'email' });
       setEmailOtpSent(true);
       Alert.alert('OTP Sent', `A verification code has been sent to ${user.email}`);
     } catch {
@@ -45,13 +44,10 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
   };
 
   const handleVerifyEmail = async () => {
-    if (!user?.email || !emailCode) return;
+    if (!user?.email || !emailCode || !profile) return;
     setEmailLoading(true);
     try {
-      await authApi.verifyOtp({ email: user.email, code: emailCode });
-      if (profile) {
-        await verificationApi.email({ profile_id: profile.id });
-      }
+      await verificationApi.email({ profile_id: profile.id, code: emailCode });
       setEmailVerified(true);
       Alert.alert('Verified', 'Email verified successfully!');
     } catch {
@@ -62,13 +58,13 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
   };
 
   const handleSendPhoneOtp = async () => {
-    if (!user?.phone) {
+    if (!user?.phone || !profile) {
       Alert.alert('Error', 'No phone number found on your account.');
       return;
     }
     setPhoneLoading(true);
     try {
-      await authApi.sendOtp({ phone: user.phone, channel: 'sms' });
+      await verificationApi.sendOtp({ profile_id: profile.id, channel: 'phone' });
       setPhoneOtpSent(true);
       Alert.alert('OTP Sent', `A verification code has been sent to ${user.phone}`);
     } catch {
@@ -79,13 +75,10 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
   };
 
   const handleVerifyPhone = async () => {
-    if (!user?.phone || !phoneCode) return;
+    if (!user?.phone || !phoneCode || !profile) return;
     setPhoneLoading(true);
     try {
-      await authApi.verifyOtp({ phone: user.phone, code: phoneCode });
-      if (profile) {
-        await verificationApi.phone({ profile_id: profile.id });
-      }
+      await verificationApi.phone({ profile_id: profile.id, code: phoneCode });
       setPhoneVerified(true);
       Alert.alert('Verified', 'Phone verified successfully!');
     } catch {
@@ -127,11 +120,7 @@ export function VerificationScreen({ navigation }: VerificationScreenProps) {
 
     setCompleting(true);
     try {
-      await profilesApi.update(profile.id, {
-        profile_status: 'active',
-        email_verified: emailVerified,
-        phone_verified: phoneVerified,
-      });
+      await profilesApi.update(profile.id, { profile_status: 'active' });
       await refreshProfile(profile.id);
     } catch {
       Alert.alert('Error', 'Failed to complete profile. Please try again.');

@@ -10,7 +10,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VerificationService } from './verification.service';
-import { VerifyDocumentDto, VerifyContactDto } from './dto';
+import { Throttle } from '@nestjs/throttler';
+import {
+  VerifyDocumentDto,
+  VerifyContactDto,
+  RequestContactOtpDto,
+} from './dto';
 import { CurrentUser } from '../../common/decorators';
 import { ProfileManager } from '../../database/entities';
 
@@ -37,22 +42,34 @@ export class VerificationController {
     }
   }
 
+  @Post('send-otp')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  async sendOtp(
+    @Body() dto: RequestContactOtpDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    await this.assertProfileAccess(userId, dto.profile_id);
+    return this.verificationService.requestContactOtp(userId, dto);
+  }
+
   @Post('email')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async verifyEmail(
     @Body() dto: VerifyContactDto,
     @CurrentUser('id') userId: string,
   ) {
     await this.assertProfileAccess(userId, dto.profile_id);
-    return this.verificationService.verifyEmail(dto);
+    return this.verificationService.verifyEmail(userId, dto);
   }
 
   @Post('phone')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async verifyPhone(
     @Body() dto: VerifyContactDto,
     @CurrentUser('id') userId: string,
   ) {
     await this.assertProfileAccess(userId, dto.profile_id);
-    return this.verificationService.verifyPhone(dto);
+    return this.verificationService.verifyPhone(userId, dto);
   }
 
   @Post('document')

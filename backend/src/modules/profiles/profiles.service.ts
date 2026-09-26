@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -181,6 +182,16 @@ export class ProfilesService {
   async update(id: string, dto: UpdateProfileDto, manager: ProfileManager) {
     this.assertOwnerOrParent(manager);
     const profile = await this.getProfileOrFail(id);
+    if (
+      dto.profile_status === 'active' &&
+      profile.profile_status !== 'active' &&
+      !profile.email_verified &&
+      !profile.phone_verified
+    ) {
+      throw new BadRequestException(
+        'Verify your email or phone before activating the profile',
+      );
+    }
     Object.assign(profile, dto);
     await this.profileRepo.save(profile);
     await this.updateSearchIndex(id, {
