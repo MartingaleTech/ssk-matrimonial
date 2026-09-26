@@ -9,7 +9,14 @@ import {
 import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, SendOtpDto, VerifyOtpDto } from './dto';
+import {
+  RegisterDto,
+  LoginDto,
+  SendOtpDto,
+  VerifyOtpDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto';
 import { Public } from '../../common/decorators';
 import { CurrentUser } from '../../common/decorators';
 
@@ -18,19 +25,21 @@ import { CurrentUser } from '../../common/decorators';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  private meta(req: Request) {
+    return { deviceInfo: req.headers['user-agent'], ipAddress: req.ip };
+  }
+
   @Public()
   @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  register(@Body() dto: RegisterDto, @Req() req: Request) {
+    return this.authService.register(dto, this.meta(req));
   }
 
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto, @Req() req: Request) {
-    const deviceInfo = req.headers['user-agent'];
-    const ipAddress = req.ip;
-    return this.authService.login(dto, deviceInfo, ipAddress);
+    return this.authService.login(dto, this.meta(req));
   }
 
   @Public()
@@ -43,16 +52,32 @@ export class AuthController {
   @Public()
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
-  verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto);
+  verifyOtp(@Body() dto: VerifyOtpDto, @Req() req: Request) {
+    return this.authService.verifyOtp(dto, this.meta(req));
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  resetPassword(@Body() dto: ResetPasswordDto, @Req() req: Request) {
+    return this.authService.resetPassword(dto, this.meta(req));
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(
     @CurrentUser('id') userId: string,
-    @Body('session_id') sessionId?: string,
+    @CurrentUser('session_id') sessionId: string,
+    @Body('all') all?: boolean,
   ) {
-    return this.authService.logout(userId, sessionId);
+    return this.authService.logout(userId, sessionId, all === true);
   }
 }

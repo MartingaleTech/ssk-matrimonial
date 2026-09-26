@@ -4,7 +4,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../database/entities';
+import { User, UserSession } from '../../database/entities';
+import { JwtPayload } from './auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -12,6 +13,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     configService: ConfigService,
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    @InjectRepository(UserSession)
+    private sessionRepo: Repository<UserSession>,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -20,11 +23,27 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: string; email: string }) {
+  async validate(payload: Partial<JwtPayload>) {
+    if (!payload.sub || !payload.sid) {
+      throw new UnauthorizedException();
+    }
+
+    const session = await this.sessionRepo.findOne({
+      where: { id: payload.sid, user_id: payload.sub },
+    });
+    if (!session || session.expires_at.getTime() <= Date.now()) {
+      throw new UnauthorizedException();
+    }
+
     const user = await this.userRepo.findOne({ where: { id: payload.sub } });
     if (!user || !user.is_active) {
       throw new UnauthorizedException();
     }
-    return { id: user.id, email: user.email, phone: user.phone };
+    return {
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      session_id: session.id,
+    };
   }
 }

@@ -82,6 +82,15 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
         />
       </View>
 
+      {!isRegister && (
+        <TouchableOpacity
+          style={styles.forgot}
+          onPress={() => navigation.navigate('ForgotPassword')}
+        >
+          <Text style={styles.toggleLink}>Forgot password?</Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={styles.toggle}
         onPress={() => setIsRegister(!isRegister)}
@@ -119,6 +128,10 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.sm,
+  },
+  forgot: {
+    marginTop: spacing.md,
+    alignItems: 'center',
   },
   toggle: {
     marginTop: spacing.lg,

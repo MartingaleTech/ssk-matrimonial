@@ -33,6 +33,7 @@ export type AuthStackParamList = {
   Login: undefined;
   OTP: { userId: string; channel: string; destination: string };
   AccountSetupChoice: undefined;
+  ForgotPassword: undefined;
 };
 
 export type ProfileCreationParamList = {
