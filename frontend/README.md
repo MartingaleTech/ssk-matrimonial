@@ -83,6 +83,6 @@ npm run lint       # eslint
 
 ## iOS App Store note
 
-Per `backend/DOCS.md`, digital subscriptions sold inside an iOS app must use Apple
+Per the [backend docs](https://github.com/MartingaleTech/ssk-matrimonial-backend/blob/main/DOCS.md), digital subscriptions sold inside an iOS app must use Apple
 StoreKit / In-App Purchase. The Stripe/Razorpay flow covers Android and web; it will not
 pass App Store review for iOS as-is. Tracked as a separate product decision.
