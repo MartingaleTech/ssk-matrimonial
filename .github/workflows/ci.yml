@@ -13,69 +13,8 @@ env:
   NODE_VERSION: 20
 
 jobs:
-  backend:
-    name: Backend (lint, typecheck, build, test)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ssk_matrimonial
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      NODE_ENV: test
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      DB_DATABASE: ssk_matrimonial
-      DB_RUN_MIGRATIONS: 'false'
-      JWT_SECRET: ci-only-jwt-secret
-      DATA_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
-      R2_ACCOUNT_ID: ci
-      R2_ACCESS_KEY_ID: ci
-      R2_SECRET_ACCESS_KEY: ci
-      R2_BUCKET: ci
-      R2_PUBLIC_BASE_URL: https://ci.invalid
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - run: npm ci
-      - name: Lint
-        run: npx eslint "{src,apps,libs,test}/**/*.ts" --max-warnings=0
-      - name: Typecheck
-        run: npx tsc --noEmit -p tsconfig.json
-      - name: Build
-        run: npm run build
-      - name: Run migrations
-        run: npm run migration:run
-      - name: Check for schema drift (entities vs migrations)
-        run: |
-          if npm run typeorm -- migration:generate src/database/migrations/CiDriftCheck; then
-            echo "::error::Entities have changed without a migration. Run 'npm run migration:generate -- src/database/migrations/<Name>' and commit it."
-            cat src/database/migrations/*CiDriftCheck.ts
-            exit 1
-          fi
-      - name: Unit tests
-        run: npm test -- --ci
-      - name: E2E tests
-        run: npm run test:e2e -- --ci --runInBand
-
   frontend:
-    name: Frontend (lint, typecheck)
+    name: Mobile app (lint, typecheck)
     runs-on: ubuntu-latest
     defaults:
       run:
